@@ -1,7 +1,7 @@
 module.exports = {
-    name: "dc",
+    name: "reset",
     description: "Make the bot leave the voice channel.",
     execute(message, args) {
-        message.client.ytQueueHandler.resetQueue(message.member.guild.id);
+        message.client.getVoiceHandler(message.guild.id).getQueueHandler().resetQueue(message.member.guild.id);
     }
 };
