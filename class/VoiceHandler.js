@@ -1,39 +1,64 @@
 const fs = require('fs');
+const MusicQueue = require('./MusicQueue');
 
 class VoiceHandler {
-    constructor() {}
+    constructor(client) {
+        this._client = client;
+    }
+
+    setQueueHandler(queueHandler) {
+        this._queueHandler = queueHandler;
+    }
+
+    getQueueHandler() {
+        return this._queueHandler;
+    }
+
+    endPlaying() {
+        const connection = this.getConnection();
+
+        if (connection) {
+            connection.dispatcher.end();
+        }
+    }
+
+    syncVoiceChannel() {
+        let channel = this.getCurrentVoiceChannel();
+
+        this._channel = channel;
+    }
+
+    isInVoice() {
+        return !!this.getCurrentVoiceChannel();
+    }
+
+    getCurrentVoiceChannel() {
+        return this._client.channels.cache.find(channel => channel.type === "voice" && channel.members.find(member => member.id === this._client.user.id));
+    }
 
     setChannel(channel) {
-        this.channel = channel;
+        this._channel = channel;
     }
 
     getChannel() {
-        return this.channel;
+        return this._channel;
     }
 
     setConnection(connection) {
-        this.connection = connection;
+        this._connection = connection;
     }
 
     getConnection() {
-        return this.connection;
+        return this._connection;
     }
 
-    async connect(channel = null) {
-        if (channel) {
-            this.channel = channel;
-        }
-
-        const that = this;
-        this.channel.join().then(connection => {
-            that.connection = connection;
-        });
-
-        return true;
+    async connect() {
+        return this._channel.join();
     }
 
     disconnect() {
-        this.connection.disconnect();
+        this._connection.disconnect();
+        this._connection = null;
     }
 
     playSound(sound) {
@@ -54,11 +79,20 @@ class VoiceHandler {
     
         if (!fs.existsSync(soundFile)) {
             console.log("Unable to play requested sound. " + soundFile);
+            return false;
         }
-    
+        
+        this.play(soundFile);
+    }
+
+    playYT(youtubeURL) {
+        this.play(youtubeURL);
+    }
+
+    play(source) {
         if (this.isConnected()) {
             try {
-                this.getConnection().play(soundFile);
+                return this.getConnection().play(source);
             }
             catch (e) {
                 console.log(e);
@@ -66,8 +100,12 @@ class VoiceHandler {
         }
     }
 
+    startQueue(guildId) {
+        this._queueHandler.start(guildId);
+    }
+
     isConnected() {
-        return !!this.connection;
+        return !!this._connection;
     }
 }
 

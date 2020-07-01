@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 module.exports = {
     name: "play",
     description: "Play a sound.",
@@ -7,6 +5,8 @@ module.exports = {
     execute(message, args) {
         const soundName = args.pop();
 
-        message.client.voiceHandler.playSound(soundName);
+        // message.client.ytQueueHandler.start(message.member.guild.id);
+
+        message.client.getVoiceHandler(message.guild.id).playSound(soundName);
     }
 };

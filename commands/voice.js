@@ -1,18 +1,26 @@
 module.exports = {
     name: "voice",
-    description: "Join a voice channel.",
+    description: "Make the bot join a voice channel.",
     execute(message, args) {
         let voiceChannel = {};
-        if (message.member.voice.channel) {
+        if (args) {
+            const channelName = args.join(" ");
+            voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
+        }
+        else if (message.member.voice.channel) {
             voiceChannel = message.member.voice.channel;
         }
         else {
-            const channelName = "Je Hoofd";
-            voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
+            message.reply("You need to either be in a voice channel or provide a channel name to make the bot join a voice channel.");
         }
 
-        message.client.voiceHandler.setChannel(voiceChannel);
+        message.client.getVoiceHandler(message.guild.id).setChannel(voiceChannel);
 
-        message.client.voiceHandler.connect();
+        try {
+            message.client.getVoiceHandler(message.guild.id).connect();
+        }
+        catch (error) {
+            console.error(error);
+        }
     }
 };

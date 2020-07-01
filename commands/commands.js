@@ -33,8 +33,6 @@ module.exports = {
             });
         }
 
-        console.log(message.client.commands);
-
         message.reply({ embed: embedObject});
     }
 };

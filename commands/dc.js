@@ -1,9 +1,14 @@
 module.exports = {
     name: "dc",
-    description: "Leave a voice channel.",
+    description: "Make the bot leave the voice channel.",
     execute(message, args) {
-        if (message.client.voiceHandler.isConnected()) {
-            message.client.voiceHandler.disconnect();
+        try {
+            if (message.client.getVoiceHandler(message.guild.id).isConnected()) {
+                message.client.getVoiceHandler(message.guild.id).disconnect();
+            }
+        }
+        catch (error) {
+            console.error(error);
         }
     }
 };
