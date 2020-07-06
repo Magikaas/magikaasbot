@@ -3,7 +3,7 @@ module.exports = {
     description: "Make the bot join a voice channel.",
     execute(message, args) {
         let voiceChannel = {};
-        if (args) {
+        if (args.length > 0) {
             const channelName = args.join(" ");
             voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
         }

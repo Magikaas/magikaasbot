@@ -109,9 +109,11 @@ client.on("message", async function(message) {
         return;
     }
 
+    const guildId = message.guild.id;
+
     // Playing means this command should only be run if the bot is currently playing a song in voice.
     if (command.playing) {
-        if (!client.voiceHandler.isInVoice()) {
+        if (!client.getVoiceHandler(guildId).isInVoice()) {
             message.reply("The bot is not currently connected to any voice channels.");
             return false;
         }
@@ -121,8 +123,6 @@ client.on("message", async function(message) {
             return false;
         }
     }
-
-    const guildId = message.guild.id;
 
     let voiceHandler = client.getVoiceHandler(message.member.guild.id);
 

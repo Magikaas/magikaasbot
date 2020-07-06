@@ -92,7 +92,7 @@ class VoiceHandler {
     play(source) {
         if (this.isConnected()) {
             try {
-                return this.getConnection().play(source);
+                return this.getConnection().play(source, { volume: 0.1 });
             }
             catch (e) {
                 console.log(e);

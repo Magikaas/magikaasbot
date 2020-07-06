@@ -5,6 +5,11 @@ module.exports = {
     execute(message, args) {
         const soundName = args.pop();
 
+        if (soundName.startsWith("http")) {
+            message.reply("This command is used to play saved sound files. Please use `" + message.client.prefix + " yt <url>` to play youtube video sound.");
+            return;
+        }
+
         // message.client.ytQueueHandler.start(message.member.guild.id);
 
         message.client.getVoiceHandler(message.guild.id).playSound(soundName);
