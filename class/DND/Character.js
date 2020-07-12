@@ -89,8 +89,6 @@ class Character extends JsonObject.JsonObject {
     static loadCharacter(member, id) {
         const characterData = this.load(member, id, this.getType());
 
-        console.log(characterData);
-
         let character = this.create(characterData);
 
         character.setMember(member);
@@ -102,6 +100,10 @@ class Character extends JsonObject.JsonObject {
     static loadAll(member) {
         const type = this.getType();
         const path = './' + (type ? type : this.getType()) + '/' + member.guild.id + '/' + member.id + '/';
+
+        if (!this.guildHasCharacters(member.guild) || !this.memberHasCharacters(member)) {
+            return [];
+        }
 
         const files = fs.readdirSync(path);
 
@@ -116,6 +118,14 @@ class Character extends JsonObject.JsonObject {
         }
 
         return characters;
+    }
+
+    static guildHasCharacters(guild) {
+        return fs.existsSync('./' + guild.id);
+    }
+
+    static memberHasCharacters(member) {
+        return fs.existsSync('./' + member.guild.id + '/' + member.id);
     }
 
     randomString(length) {

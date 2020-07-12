@@ -31,6 +31,8 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 config = config[botEnv.version];
 const prefix = config.prefix;
 
+client.prefix = prefix;
+
 // Debugging, log the prefix of the bot.
 console.log("Prefix: " + prefix);
 

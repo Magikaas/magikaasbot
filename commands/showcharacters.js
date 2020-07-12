@@ -34,17 +34,22 @@ module.exports = {
             }
         };
 
-        for (let character of characters) {
-            if (args.length > 0) {
-                if (character[filter.prop] !== filter.value) {
-                    continue;
-                }
-            }
+        // for (let character of characters) {
+        //     if (args.length > 0) {
+        //         if (character[filter.prop] !== filter.value) {
+        //             continue;
+        //         }
+        //     }
             
-            embedObject.fields.push({
-                name: character.getFullName(),
-                value: character.getId()
-            });
+        //     embedObject.fields.push({
+        //         name: character.getFullName(),
+        //         value: character.getId()
+        //     });
+        // }
+
+        if (embedObject.fields.length === 0) {
+            message.reply("Unable to find any characters, please create one first with `" + message.client.prefix + " createcharacter <firstname> <lastname> <age>`");
+            return;
         }
 
         message.reply({ embed: embedObject});
