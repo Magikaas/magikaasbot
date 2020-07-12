@@ -121,11 +121,11 @@ class Character extends JsonObject.JsonObject {
     }
 
     static guildHasCharacters(guild) {
-        return fs.existsSync('./' + guild.id);
+        return fs.existsSync('./' + this.getType() + '/' + guild.id);
     }
 
     static memberHasCharacters(member) {
-        return fs.existsSync('./' + member.guild.id + '/' + member.id);
+        return fs.existsSync('./' + this.getType() + '/' + member.guild.id + '/' + member.id);
     }
 
     randomString(length) {
