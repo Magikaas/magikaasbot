@@ -40,7 +40,7 @@ class JsonObject extends DataObject.DataObject {
     }
 
     getFileDirectory() {
-        return './' + this.getType() + '/' + this.getMember().guild.id + '/' + this.getMember().id + '/';
+        return './' + this.constructor.getType() + '/' + this.getMember().guild.id + '/' + this.getMember().id + '/';
     }
 
     getFileName() {
