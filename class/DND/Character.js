@@ -1,10 +1,7 @@
 const JsonObject = require("../JsonObject");
 const fs = require('fs');
-const mkdirp = require("mkdirp");
 
 class Character extends JsonObject.JsonObject {
-
-    static __type;
 
     constructor() {
         super();
