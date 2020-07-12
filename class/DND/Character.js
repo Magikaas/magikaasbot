@@ -4,7 +4,7 @@ const mkdirp = require("mkdirp");
 
 class Character extends JsonObject.JsonObject {
 
-    static __type = 'character';
+    static __type;
 
     constructor() {
         super();
@@ -52,6 +52,10 @@ class Character extends JsonObject.JsonObject {
         return this.get('expthislvl');
     }
 
+    static getType() {
+        return 'character';
+    }
+
     static generateCharacter(member = false) {
         const firstNames = require('../../data/first-names.json');
         const lastNames = require('../../data/last-names.json');
@@ -86,7 +90,7 @@ class Character extends JsonObject.JsonObject {
      * @param {int} id 
      */
     static loadCharacter(member, id) {
-        const characterData = this.load(member, id, this.__type);
+        const characterData = this.load(member, id, this.getType());
 
         console.log(characterData);
 
@@ -100,7 +104,7 @@ class Character extends JsonObject.JsonObject {
 
     static loadAll(member) {
         const type = this.getType();
-        const path = './' + (type ? type : this.__type) + '/' + member.guild.id + '/' + member.id + '/';
+        const path = './' + (type ? type : this.getType()) + '/' + member.guild.id + '/' + member.id + '/';
 
         const files = fs.readdirSync(path);
 
