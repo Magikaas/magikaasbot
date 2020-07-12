@@ -3,8 +3,6 @@ const fs = require('fs');
 const mkdirp = require("mkdirp");
 
 class JsonObject extends DataObject.DataObject {
-    
-    static __type;
 
     constructor(id = false) {
         super();
@@ -27,10 +25,6 @@ class JsonObject extends DataObject.DataObject {
 
     generateId() {
         return this.getDataType();
-    }
-
-    getType() {
-        return this.__type;
     }
 
     getDataType() {
@@ -58,11 +52,11 @@ class JsonObject extends DataObject.DataObject {
     }
 
     static getType() {
-        return this.__type;
+        return false;
     }
 
     static generateFilePath(member, id, type = false) {
-        return '../' + (type ? type : this.__type) + '/' + member.guild.id + '/' + member.id + '/' + id + '.json';
+        return '../' + (type ? type : this.getType()) + '/' + member.guild.id + '/' + member.id + '/' + id + '.json';
     }
 
     save(member, id) {
