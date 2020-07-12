@@ -8,6 +8,8 @@ const botEnv = require('./env.json');
 const VoiceHandler = require('./class/VoiceHandler');
 const RoleManager = require('./class/RoleManager');
 const YoutubeQueueHandler = require('./class/YoutubeQueueHandler');
+const Command = require('./class/Command');
+const Character = require('./class/DND/Character');
 
 client.commands = new Discord.Collection();
 client.schedule = [];
@@ -78,92 +80,15 @@ client.on("message", async function(message) {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
     const args = message.content.slice(prefix.length+1).split(/ +/);
+
     let commandName = args.shift().toLowerCase();
 
-    let command = client.commands.get(commandName);
+    let commandObject = client.commands.get(commandName);
 
-    if (!command) {
-        message.reply("Command with name `" + commandName + "` not found. Type `" + prefix + " commands` to see this bot's commands.");
-        return;
-    }
+    const command = new Command.Command(commandObject, args, message, client);
 
-    // Admin only means admin only
-    if (command.adminOnly && !client.RoleManager.senderIsAdmin(message)) return;
-
-    let hasRole = false;
-
-    if (command.requiredRoles) {
-        for (const role of command.requiredRoles) {
-            if (client.RoleManager.senderHasRoleWithName(message, role)) {
-                hasRole = true;
-                break;
-            }
-        }
-    }
-    else {
-        hasRole = true;
-    }
-
-    if (!hasRole) {
-        message.reply("You lack the required permissions to execute this command");
-        return;
-    }
-
-    const guildId = message.guild.id;
-
-    // Playing means this command should only be run if the bot is currently playing a song in voice.
-    if (command.playing) {
-        if (!client.getVoiceHandler(guildId).isInVoice()) {
-            message.reply("The bot is not currently connected to any voice channels.");
-            return false;
-        }
-
-        if (!client.ytQueueHandler.isPlaying()) {
-            message.reply("The bot is not currently playing in voice chat.");
-            return false;
-        }
-    }
-
-    let voiceHandler = client.getVoiceHandler(message.member.guild.id);
-
-    if (!voiceHandler) {
-        client.addVoiceHandler(message.member.guild.id, client);
-    }
-
-    if (command.voice && !client.getVoiceHandler(message.member.guild.id).isConnected()) {
-        const voiceChannel = message.member.voice.channel;
-
-        if (!voiceChannel) {   
-            return message.channel.send("You need to be in a voice channel to play music!");
-        }
-
-        const permissions = voiceChannel.permissionsFor(message.client.user);
-    
-        if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-          return message.channel.send("I need the permissions to join and speak in your voice channel!");
-        }
-
-        client.getVoiceHandler(guildId).setChannel(message.member.voice.channel);
-        client.getVoiceHandler(guildId).connect().then(connection => {
-            client.getVoiceHandler(guildId).setConnection(connection);
-            executeCommand(command, args, message);
-        });
-    }
-    else {
-        executeCommand(command, args, message);
-    }
+    command.run();
 });
-
-function executeCommand(command, args, message) {
-    try {
-        command.execute(message, args);
-    }
-    catch (error) {
-        console.log(error);
-        message.reply("There was an error trying to execute command: '" + command.name + "'.");
-        // message.reply("Error: " + error.message);
-    }
-}
 
 // Voice state handling for voice channel joining/leaving.
 // Possibly move to voice manager.
