@@ -5,6 +5,9 @@ module.exports = {
     description: "Set a character as active.",
     help: "selectcharacter",
     execute(message, args) {
-        message.client.characters[message.member.id] = Character.Character.load(message.member, args[0]);
+        if (!message.client.characters[message.guild.id]) {
+            message.client.characters[message.guild.id] = {};
+        }
+        message.client.characters[message.guild.id][message.member.id] = Character.Character.load(message.member, args[0]);
     }
 };

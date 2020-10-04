@@ -40,7 +40,7 @@ module.exports = {
             res.on('end', async () => {
                 let jsonData = JSON.parse(output);
 
-                if (!jsonData) {
+                if (!jsonData || jsonData.items.length === 0) {
                     message.reply("No video found");
                     return;
                 }

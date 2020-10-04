@@ -1,0 +1,664 @@
+{
+    "hive": [],
+    "common": [
+        {
+            "princess": "hive",
+            "drone": "hive"
+        }
+    ],
+    "manyullin": [
+        {
+            "princess": "ardite",
+            "drone": "cobalt"
+        }
+    ],
+    "ardite": [
+        {
+            "princess": "industrious",
+            "drone": "infernal"
+        }
+    ],
+    "cobalt": [
+        {
+            "princess": "imperial",
+            "drone": "infernal"
+        }
+    ],
+    "industrious": [
+        {
+            "princess": "diligent",
+            "drone": "unweary"
+        }
+    ],
+    "infernal": [],
+    "imperial": [
+        {
+            "princess": "noble",
+            "drone": "majestic"
+        }
+    ],
+    "noble": [
+        {
+            "princess": "common",
+            "drone": "cultivated"
+        }
+    ],
+    "cultivated": [
+        {
+            "princess": "common",
+            "drone": "hive"
+        }
+    ],
+    "majestic": [
+        {
+            "princess": "noble",
+            "drone": "cultivated"
+        }
+    ],
+    "diligent": [
+        {
+            "princess": "common",
+            "drone": "cultivated"
+        }
+    ],
+    "unweary": [
+        {
+            "princess": "diligent",
+            "drone": "cultivated"
+        }
+    ],
+    "leaden": [
+        {
+            "princess": "resilient",
+            "drone": "unweary"
+        }
+    ],
+    "lustered": [
+        {
+            "princess": "resilient",
+            "drone": "unweary"
+        }
+    ],
+    "pulped": [
+        {
+            "princess": "forest",
+            "drone": "unweary"
+        }
+    ],
+    "icy": [
+        {
+            "princess": "industrious",
+            "drone": "wintry"
+        }
+    ],
+    "glacial": [
+        {
+            "princess": "icy",
+            "drone": "wintry"
+        }
+    ],
+    "wintry": [],
+    "distilled": [
+        {
+            "princess": "oily",
+            "drone": "industrious"
+        }
+    ],
+    "oily": [
+        {
+            "princess": "primeval",
+            "drone": "modest"
+        }
+    ],
+    "refined": [
+        {
+            "princess": "oily",
+            "drone": "distilled"
+        }
+    ],
+    "primeval": [],
+    "tarry": [
+        {
+            "princess": "refined",
+            "drone": "fossiled"
+        }
+    ],
+    "elastic": [
+        {
+            "princess": "refined",
+            "drone": "resinous"
+        }
+    ],
+    "fossiled": [
+        {
+            "princess": "hive",
+            "drone": "primeval"
+        }
+    ],
+    "rusty": [
+        {
+            "princess": "resilient",
+            "drone": "meadows"
+        }
+    ],
+    "resilient": [
+        {
+            "princess": "imperial",
+            "drone": "robust"
+        }
+    ],
+    "robust": [
+        {
+            "princess": "unweary",
+            "drone": "tolerant"
+        }
+    ],
+    "tolerant": [
+        {
+            "princess": "rocky",
+            "drone": "diligent"
+        }
+    ],
+    "rocky": [],
+    "unstable": [
+        {
+            "princess": "rocky",
+            "drone": "austere"
+        }
+    ],
+    "austere": [
+        {
+            "princess": "modest",
+            "drone": "frugal"
+        }
+    ],
+    "modest": [],
+    "sinister": [
+        {
+            "princess": "modest",
+            "drone": "cultivated"
+        },
+        {
+            "princess": "tropical",
+            "drone": "cultivated"
+        }
+    ],
+    "demonic": [
+        {
+            "princess": "sinister",
+            "drone": "fiendish"
+        }
+    ],
+    "esoteric": [
+        {
+            "princess": "demonic",
+            "drone": "imperial"
+        },
+        {
+            "princess": "demonic",
+            "drone": "heroic"
+        },
+        {
+            "princess": "cultivated",
+            "drone": "eldritch"
+        }
+    ],
+    "heroic": [
+        {
+            "princess": "steadfast",
+            "drone": "valiant"
+        }
+    ],
+    "gothic": [],
+    "steadfast": [
+        {
+            "princess": "chest_only",
+            "drone": "chest_only"
+        }
+    ],
+    "chest": [],
+    "valiant": [
+        {
+            "princess": "hive_chance",
+            "drone": "hive_chance"
+        }
+    ],
+    "hive_chance": [],
+    "excited": [
+        {
+            "princess": "cultivated",
+            "drone": "valiant"
+        }
+    ],
+    "celebratory": [
+        {
+            "princess": "austere",
+            "drone": "excited"
+        }
+    ],
+    "glowering": [
+        {
+            "princess": "furious",
+            "drone": "excited"
+        }
+    ],
+    "furious": [
+        {
+            "princess": "embittered",
+            "drone": "fiendish"
+        }
+    ],
+    "fiendish": [
+        {
+            "princess": "sinister",
+            "drone": "cultivated"
+        },
+        {
+            "princess": "sinister",
+            "drone": "modest"
+        },
+        {
+            "princess": "sinister",
+            "drone": "tropical"
+        },
+        {
+            "princess": "embittered",
+            "drone": "sinister"
+        }
+    ],
+    "rejuvenating": [
+        {
+            "princess": "energetic",
+            "drone": "vis"
+        }
+    ],
+    "vis": [
+        {
+            "princess": "arcane",
+            "drone": "aware"
+        },
+        {
+            "princess": "stark",
+            "drone": "aware"
+        }
+    ],
+    "arcane": [
+        {
+            "princess": "esoteric",
+            "drone": "mysterious"
+        }
+    ],
+    "mysterious": [
+        {
+            "princess": "ender",
+            "drone": "esoteric"
+        },
+        {
+            "princess": "esoteric",
+            "drone": "demonic"
+        }
+    ],
+    "ender": [],
+    "invincible": [
+        {
+            "princess": "resilient",
+            "drone": "ender"
+        }
+    ],
+    "valuable": [
+        {
+            "princess": "glittering",
+            "drone": "ender"
+        }
+    ],
+    "glittering": [
+        {
+            "princess": "resolute",
+            "drone": "noble"
+        }
+    ],
+    "resolute": [
+        {
+            "princess": "corroded",
+            "drone": "tarnished"
+        }
+    ],
+    "corroded": [
+        {
+            "princess": "resilient",
+            "drone": "wintry"
+        }
+    ],
+    "brazen": [
+        {
+            "princess": "corroded",
+            "drone": "galvanized"
+        }
+    ],
+    "galvanized": [
+        {
+            "princess": "tarnished",
+            "drone": "cultivated"
+        }
+    ],
+    "tarnished": [
+        {
+            "princess": "resilient",
+            "drone": "diligent"
+        }
+    ],
+    "olivine": [
+        {
+            "princess": "emerald",
+            "drone": "ender"
+        }
+    ],
+    "emerald": [
+        {
+            "princess": "lapis",
+            "drone": "noble"
+        }
+    ],
+    "lapis": [
+        {
+            "princess": "resilient",
+            "drone": "water"
+        }
+    ],
+    "water": [],
+    "river": [
+        {
+            "princess": "water",
+            "drone": "diligent"
+        }
+    ],
+    "ocean": [
+        {
+            "princess": "water",
+            "drone": "common"
+        }
+    ],
+    "sapphire": [
+        {
+            "princess": "emerald",
+            "drone": "ocean"
+        }
+    ],
+    "stained": [
+        {
+            "princess": "water",
+            "drone": "ocean"
+        }
+    ],
+    "absolute": [
+        {
+            "princess": "ocean",
+            "drone": "frigid"
+        }
+    ],
+    "bovine": [
+        {
+            "princess": "rural",
+            "drone": "water"
+        }
+    ],
+    "viscous": [
+        {
+            "princess": "water",
+            "drone": "exotic"
+        }
+    ],
+    "exotic": [],
+    "jaded": [
+        {
+            "princess": "ender",
+            "drone": "relic"
+        }
+    ],
+    "spirit": [
+        {
+            "princess": "fiendish",
+            "drone": "enchanted"
+        },
+        {
+            "princess": "fiendish",
+            "drone": "ender"
+        }
+    ],
+    "soul": [
+        {
+            "princess": "fiendish",
+            "drone": "spirit"
+        }
+    ],
+    "pupil": [
+        {
+            "princess": "arcane",
+            "drone": "enchanted"
+        }
+    ],
+    "scholarly": [
+        {
+            "princess": "pupil",
+            "drone": "arcane"
+        }
+    ],
+    "savant": [
+        {
+            "princess": "pupil",
+            "drone": "scholarly"
+        }
+    ],
+    "minium": [
+        {
+            "princess": "sinister",
+            "drone": "mysterious"
+        },
+        {
+            "princess": "frugal",
+            "drone": "pupil"
+        }
+    ],
+    "frugal": [
+        {
+            "princess": "modest",
+            "drone": "sinister"
+        },
+        {
+            "princess": "modest",
+            "drone": "fiendish"
+        }
+    ],
+    "gold": [
+        {
+            "princess": "minium",
+            "drone": "lead"
+        }
+    ],
+    "skeletal": [
+        {
+            "princess": "frugal",
+            "drone": "desolate"
+        }
+    ],
+    "desolate": [
+        {
+            "princess": "barren",
+            "drone": "arid"
+        }
+    ],
+    "barren": [
+        {
+            "princess": "arid",
+            "drone": "common"
+        }
+    ],
+    "arid": [
+        {
+            "princess": "meadows",
+            "drone": "modest"
+        }
+    ],
+    "hungry": [
+        {
+            "princess": "arid",
+            "drone": "rural"
+        }
+    ],
+    "rural": [
+        {
+            "princess": "meadows",
+            "drone": "diligent"
+        }
+    ],
+    "ravening": [
+        {
+            "princess": "bigbad",
+            "drone": "vis"
+        }
+    ],
+    "bigbad": [
+        {
+            "princess": "skulking",
+            "drone": "mysterious"
+        }
+    ],
+    "stannum": [
+        {
+            "princess": "industrious",
+            "drone": "forest"
+        }
+    ],
+    "forest": [],
+    "yellorium": [
+        {
+            "princess": "nuclear",
+            "drone": "frugal"
+        }
+    ],
+    "nuclear": [
+        {
+            "princess": "unstable",
+            "drone": "rusty"
+        },
+        {
+            "princess": "unstable",
+            "drone": "corroded"
+        },
+        {
+            "princess": "unstable",
+            "drone": "tarnished"
+        },
+        {
+            "princess": "unstable",
+            "drone": "lustered"
+        },
+        {
+            "princess": "unstable",
+            "drone": "leaden"
+        }
+    ],
+    "meadows": [],
+    "diamond": [
+        {
+            "princess": "lapis",
+            "drone": "cultivated"
+        }
+    ],
+    "fluix": [
+        {
+            "princess": "certus",
+            "drone": "skystone"
+        }
+    ],
+    "certus": [
+        {
+            "princess": "silicon",
+            "drone": "skystone"
+        }
+    ],
+    "skystone": [
+        {
+            "princess": "earthen",
+            "drone": "windy"
+        }
+    ],
+    "earthen": [
+        {
+            "princess": "supernatural",
+            "drone": "ethereal"
+        }
+    ],
+    "supernatural": [
+        {
+            "princess": "charmed",
+            "drone": "enchanted"
+        }
+    ],
+    "charmed": [
+        {
+            "princess": "cultivated",
+            "drone": "eldritch"
+        }
+    ],
+    "ethereal": [
+        {
+            "princess": "arcane",
+            "drone": "supernatural"
+        }
+    ],
+    "eldritch": [
+        {
+            "princess": "sorcerous",
+            "drone": "cultivated"
+        },
+        {
+            "princess": "mystical",
+            "drone": "cultivated"
+        },
+        {
+            "princess": "unusual",
+            "drone": "cultivated"
+        },
+        {
+            "princess": "attuned",
+            "drone": "cultivated"
+        }
+    ],
+    "mystical": [
+        {
+            "princess": "noble",
+            "drone": "monastic"
+        }
+    ],
+    "silicon": [
+        {
+            "princess": "skystone",
+            "drone": "ferrous"
+        }
+    ],
+    "sorcerous": [
+        {
+            "princess": "hive",
+            "drone": "common"
+        }
+    ],
+    "enchanted": [
+        {
+            "princess": "eldritch",
+            "drone": "charmed"
+        }
+    ],
+    "ferrous": [
+        {
+            "princess": "common",
+            "drone": "industrious"
+        }
+    ],
+    "windy": [
+        {
+            "princess": "supernatural",
+            "drone": "ethereal"
+        }
+    ]
+}
