@@ -9,10 +9,8 @@ const VoiceHandler = require('./class/VoiceHandler');
 const RoleManager = require('./class/RoleManager');
 const YoutubeQueueHandler = require('./class/YoutubeQueueHandler');
 const Command = require('./class/Command');
-const Character = require('./class/DND/Character');
 
 client.commands = new Discord.Collection();
-client.schedule = [];
 
 const ERRORLOGFILE = "./error.log";
 
@@ -25,13 +23,16 @@ function guaranteeFile(file) {
     }
 }
 
+const roleManager = new RoleManager.RoleManager();
+
 // Load the command files.
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-config = config[botEnv.version];
+config = config["magikaasbot"][botEnv.version];
 const prefix = config.prefix;
 
-client.prefix = prefix;
+client.prefix = config.prefix;
+client.googleApiKey = config.gapi_key;
 
 // Debugging, log the prefix of the bot.
 console.log("Prefix: " + prefix);
@@ -81,7 +82,7 @@ client.addVoiceHandler = addVoiceHandler;
 client.on("message", async function(message) {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const args = message.content.slice(prefix.length+1).split(/ +/);
+    const args = message.content.slice(prefix.length + 1).split(/ +/);
 
     let commandName = args.shift().toLowerCase();
 
@@ -106,14 +107,14 @@ client.on("voiceStateUpdate", voiceState => {
 
     if (voiceState.channelID === client.voice.connections.find(connection => connection).channel.id) {
         if (voiceState.channel.members.size === 1) {
-            client.voice.connections.find(connection => connection.channel.id === voiceState.channelID).disconnect();
+            client.voice.connections.get(voiceState.channelID).disconnect();
         }
     }
 });
 
 client.voiceHandlers = {};
 
-client.roleManager = new RoleManager.RoleManager();
+client.roleManager = roleManager;
 
 client.ytQueueHandler = new YoutubeQueueHandler.YoutubeQueueHandler();
 

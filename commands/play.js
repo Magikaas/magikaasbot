@@ -10,7 +10,7 @@ module.exports = {
             return;
         }
 
-        // message.client.ytQueueHandler.start(message.member.guild.id);
+        console.log("Playing: " + soundName);
 
         message.client.getVoiceHandler(message.guild.id).playSound(soundName);
     }

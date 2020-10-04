@@ -61,7 +61,20 @@ class VoiceHandler {
         this._connection = null;
     }
 
-    playSound(sound) {
+    soundCategoryExists(sound) {
+        // If we have a directory for a sound.
+        const soundDir = "./sound/" + sound;
+
+        return fs.existsSync(soundDir);
+    }
+
+    canFindRandomSoundFile(sound) {
+        const soundFile = this.getRandomSoundFile(sound);
+
+        return fs.existsSync(soundFile);
+    }
+
+    getRandomSoundFile(sound) {
         // If we have a directory for a sound.
         const soundDir = "./sound/" + sound;
         let soundFile = "";
@@ -76,17 +89,35 @@ class VoiceHandler {
         else {
             soundFile = "./sound/" + sound + ".mp3";
         }
-    
-        if (!fs.existsSync(soundFile)) {
-            console.log("Unable to play requested sound. " + soundFile);
-            return false;
-        }
+
+        return soundFile;
+    }
+
+    playSound(sound) {
+        let soundFile = this.getRandomSoundFile(sound);
         
-        this.play(soundFile);
+        return this.play(soundFile);
     }
 
     playYT(youtubeURL) {
-        this.play(youtubeURL);
+        return this.play(youtubeURL);
+    }
+
+    playLoop(source) {
+        const that = this;
+        return new Promise(function(resolve, reject) {
+            if (that.canFindRandomSoundFile(source)) {
+                that.playSound(source)
+                .on('speaking', value => {
+                    if (value == 0) {
+                        resolve(source);
+                    }
+                })
+            }
+            else {
+                reject(source);
+            }
+        });
     }
 
     play(source) {

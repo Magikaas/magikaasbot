@@ -1,3 +1,5 @@
+const Discord = require('discord.js');
+
 module.exports = {
     name: "commands",
     description: "Show this list.",
@@ -20,6 +22,8 @@ module.exports = {
                 icon_url: "https://w7.pngwing.com/pngs/466/304/png-transparent-yui-hirasawa-azusa-nakano-tsumugi-kotobuki-mio-akiyama-ritsu-tainaka-chibi-child-mammal-face.png"
             }
         };
+
+        let embed = new Discord.MessageEmbed();
 
         for (let command of message.client.commands) {
             let cmd = command.pop();
