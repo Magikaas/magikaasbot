@@ -112,6 +112,15 @@ client.on("voiceStateUpdate", voiceState => {
     }
 });
 
+function writeLog(logString, logType = "error") {
+    fs.appendFile(ERRORLOGFILE, new Date().getUTCDate() + "] " + logString + "\n", function(err) {
+        context.reply("An error occurred writing to logfile, please report this to an admin with details concerning your actions and a timestamp.");
+        console.log(err.message);
+    });
+}
+
+client.writeLog = writeLog;
+
 client.voiceHandlers = {};
 
 client.roleManager = roleManager;
