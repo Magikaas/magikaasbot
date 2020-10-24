@@ -64,7 +64,7 @@ module.exports = {
                 }
 
                 message.reply("Playing: \"" + videoTitle + "\" (" + videoUrl + ")");
-            })
+            });
         });
 
         req.on('error', e => {

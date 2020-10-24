@@ -115,6 +115,10 @@ class DiceRoller {
 
         let dieRoll = "";
 
+        if (amount > 100) {
+            amount = 100;
+        }
+
         for (let i = 0; i < amount; i++) {
             dieRoll = die.roll();
             dieRollResults.push(dieRoll);
