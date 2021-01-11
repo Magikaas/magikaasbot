@@ -96,6 +96,10 @@ class VoiceHandler {
     playSound(sound) {
         let soundFile = this.getRandomSoundFile(sound);
         
+        return this.playSoundFile(soundFile);
+    }
+
+    playSoundFile(soundFile) {
         return this.play(soundFile);
     }
 
@@ -123,7 +127,7 @@ class VoiceHandler {
     play(source) {
         if (this.isConnected()) {
             try {
-                return this.getConnection().play(source, { volume: 0.1 });
+                return this.getConnection().play(source, { volume: 0.5 });
             }
             catch (e) {
                 console.log(e);

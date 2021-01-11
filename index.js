@@ -25,32 +25,40 @@ function guaranteeFile(file) {
 
 const roleManager = new RoleManager.RoleManager();
 
-// Load the command files.
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-
 config = config["magikaasbot"][botEnv.version];
 const prefix = config.prefix;
 
 client.prefix = config.prefix;
 client.googleApiKey = config.gapi_key;
 
+client.config = config;
+
 // Debugging, log the prefix of the bot.
 console.log("Prefix: " + prefix);
 
-// If config has any special values for commands, add them now.
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-
-    const configCommands = config.commands;
-
-    if (Object.keys(configCommands).includes(command.name)) {
-        for (let k in configCommands[command.name]) {
-            command[k] = configCommands[command.name][k];
+function loadCommands(config) {
+    // Load the command files.
+    const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+    
+    // If config has any special values for commands, add them now.
+    for (const file of commandFiles) {
+        const command = require(`./commands/${file}`);
+    
+        const configCommands = config.commands;
+    
+        if (Object.keys(configCommands).includes(command.name)) {
+            for (let k in configCommands[command.name]) {
+                command[k] = configCommands[command.name][k];
+            }
         }
+    
+        client.commands.set(command.name, command);
     }
-
-    client.commands.set(command.name, command);
 }
+
+loadCommands(config);
+
+client.loadCommands = loadCommands;
 
 // Set the bot's presence.
 client.once('ready', () => {
@@ -93,6 +101,8 @@ client.on("message", async function(message) {
     command.run();
 });
 
+client.voiceUsers = [];
+
 // Voice state handling for voice channel joining/leaving.
 // Possibly move to voice manager.
 client.on("voiceStateUpdate", voiceState => {
@@ -107,15 +117,22 @@ client.on("voiceStateUpdate", voiceState => {
 
     if (voiceState.channelID === client.voice.connections.find(connection => connection).channel.id) {
         if (voiceState.channel.members.size === 1) {
-            client.voice.connections.get(voiceState.channelID).disconnect();
+            const myChannel = client.voice.connections.get(voiceState.channelID);
+
+            if (!!myChannel) {
+                myChannel.disconnect();
+            }
         }
     }
 });
 
 function writeLog(logString, logType = "error") {
-    fs.appendFile(ERRORLOGFILE, new Date().getUTCDate() + "] " + logString + "\n", function(err) {
-        context.reply("An error occurred writing to logfile, please report this to an admin with details concerning your actions and a timestamp.");
-        console.log(err.message);
+    const date = new Date();
+    
+    fs.mkdirSync("logs");
+    
+    fs.appendFile("./logs/" + logType + ".log", "[" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + " - " + date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "] " + logString + "\n", function(err) {
+        console.log("Wrote log to: " + logType);
     });
 }
 

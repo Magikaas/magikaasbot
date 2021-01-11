@@ -38,6 +38,8 @@ class Command {
     
         // Playing means this command should only be run if the bot is currently playing a song in voice.
         if (this.onlyDuringVoiceActivity()) {
+            const guildId = this.message.guild.id;
+            
             if (!this.client.getVoiceHandler(guildId).isInVoice()) {
                 this.message.reply("The bot is not currently connected to any voice channels.");
                 return false;
@@ -64,10 +66,10 @@ class Command {
             this.client.addVoiceHandler(guildId, this.client);
         }
     
-        if (this.command.voice && !this.client.getVoiceHandler(guildId).isConnected()) {
+        if (this.isVoiceCommand() && !this.client.getVoiceHandler(guildId).isConnected()) {
             const voiceChannel = this.message.member.voice.channel;
     
-            if (!voiceChannel) {   
+            if (!voiceChannel) {
                 return this.message.channel.send("You need to be in a voice channel to play music!");
             }
     
@@ -94,9 +96,13 @@ class Command {
         }
         catch (error) {
             console.log(error);
-            this.message.reply("There was an error trying to execute command: '" + this.command.name + "'.");
+            this.message.reply("There was an error trying to execute command: '" + this.getCommandName() + "'.");
             // message.reply("Error: " + error.message);
         }
+    }
+
+    getCommandName() {
+        return this.command.name;
     }
 
     isVoiceCommand() { 

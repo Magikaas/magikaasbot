@@ -7,3 +7,6 @@ error.log
 ffmpeg.exe
 sound
 character
+logs
+speechsynth.json
+*.mp3
