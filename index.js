@@ -9,10 +9,18 @@ const VoiceHandler = require('./class/VoiceHandler');
 const RoleManager = require('./class/RoleManager');
 const YoutubeQueueHandler = require('./class/YoutubeQueueHandler');
 const Command = require('./class/Command');
+const Queue = require('./class/Queue');
 
 client.commands = new Discord.Collection();
 
 const ERRORLOGFILE = "./error.log";
+
+client.tts = {
+    language: "nl-NL",
+    gender: "MALE",
+    queue: new Queue.Queue(),
+    playing: false
+};
 
 // Always guarantee an error log file.
 guaranteeFile(ERRORLOGFILE);
@@ -129,7 +137,9 @@ client.on("voiceStateUpdate", voiceState => {
 function writeLog(logString, logType = "error") {
     const date = new Date();
     
-    fs.mkdirSync("logs");
+    if (!fs.existsSync("logs")) {
+        fs.mkdirSync("logs");
+    }
     
     fs.appendFile("./logs/" + logType + ".log", "[" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + " - " + date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "] " + logString + "\n", function(err) {
         console.log("Wrote log to: " + logType);

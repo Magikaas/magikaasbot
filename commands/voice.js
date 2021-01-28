@@ -1,6 +1,7 @@
 module.exports = {
     name: "voice",
     description: "Make the bot join a voice channel.",
+    voice: true,
     execute(message, args) {
         let voiceChannel = {};
         if (args.length > 0) {

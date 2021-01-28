@@ -7,6 +7,40 @@ module.exports = {
     voice: true,
     description: "Play text as voiced audio",
     async execute(message, args) {
+        let gender = message.client.tts.gender;
+        let language = message.client.tts.language;
+
+        const paramRegex = /(?<variable>.+)=(?<value>.+)/;
+
+        let b = [];
+        for (let i in args) {
+            let v = args[i];
+            let check = paramRegex.exec(v);
+
+            if (check != null) {
+                let variable = check.groups.variable;
+                let value = check.groups.value;
+
+                console.log(check);
+
+                console.log("Var: " + variable);
+                console.log("Val: " + value);
+
+                switch (variable) {
+                    case "g":
+                    case "gender":
+                        gender = value;
+                        break;
+                    case "l":
+                    case "language":
+                        language = value;
+                        break;
+                }
+
+                args[i] = "";
+            }
+        }
+
         const text = args.join(" ");
         message.reply("You said '" + text + "'");
 
@@ -16,13 +50,18 @@ module.exports = {
 
         const request = {
             input: {text: text},
-            voice: {languageCode: 'es-Es', ssmlGender: 'NEUTRAL'},
+            voice: {languageCode: language, ssmlGender: gender},
             audioConfig: {audioEncoding: 'MP3'},
           };
         const [response] = await client.synthesizeSpeech(request);
         const writeFile = util.promisify(fs.writeFile);
         await writeFile(outputFile, response.audioContent, 'binary');
         console.log(`Audio content written to file: ${outputFile}`);
-        message.client.getVoiceHandler(message.guild.id).playSoundFile(outputFile);
+        message.client.tts.queue.add(outputFile);
+
+        if (!message.client.tts.playing) {
+            message.client.tts.queue.play();
+        }
+        // message.client.getVoiceHandler(message.guild.id).playSoundFile(outputFile);
     }
 };
