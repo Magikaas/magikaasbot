@@ -12,9 +12,9 @@ module.exports = {
             message.client.ytQueueHandler.setQueue(message.guild.id, queue);
         }
 
-        queue.push(args[0]);
-
         const songInfo = await ytdl.getInfo(args[0]);
+
+        queue.push(songInfo);
 
         message.channel.send("Added '" + songInfo.title + "' to the queue.\nTotal items in queue: " + queue.getLength());
     }

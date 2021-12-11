@@ -44,7 +44,14 @@ module.exports = {
         const text = args.join(" ");
         message.reply("You said '" + text + "'");
 
-        const outputFile = "voice.mp3";
+        const fileDir = "./voice/";
+        if (!fs.existsSync(fileDir)) {
+            fs.mkdirSync(fileDir);
+        }
+
+        const fileCount = fs.readdirSync(fileDir).length+1;
+
+        const outputFile = fileDir + fileCount + ".mp3";
 
         const client = new textToSpeech.TextToSpeechClient();
 
@@ -57,11 +64,6 @@ module.exports = {
         const writeFile = util.promisify(fs.writeFile);
         await writeFile(outputFile, response.audioContent, 'binary');
         console.log(`Audio content written to file: ${outputFile}`);
-        message.client.tts.queue.add(outputFile);
-
-        if (!message.client.tts.playing) {
-            message.client.tts.queue.play();
-        }
-        // message.client.getVoiceHandler(message.guild.id).playSoundFile(outputFile);
+        message.client.getVoiceHandler(message.guild.id).playSoundFile(outputFile);
     }
 };

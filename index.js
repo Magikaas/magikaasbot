@@ -141,8 +141,10 @@ function writeLog(logString, logType = "error") {
         fs.mkdirSync("logs");
     }
     
-    fs.appendFile("./logs/" + logType + ".log", "[" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + " - " + date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "] " + logString + "\n", function(err) {
-        console.log("Wrote log to: " + logType);
+    let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+    let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+    fs.appendFile("./logs/" + logType + ".log", "[" + date.getHours() + ":" + minutes + ":" + seconds + " - " + date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "] " + logString + "\n", function(err) {
+        // console.log("Wrote log to: " + logType);
     });
 }
 

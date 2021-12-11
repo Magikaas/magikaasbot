@@ -68,7 +68,7 @@ module.exports = {
     
                     message.reply("Playing: \"" + videoTitle + "\" (" + videoUrl + ")");
 
-                    message.client.getVoiceHandler(message.guild.id).play(ytdl(videoUrl));
+                    message.client.getVoiceHandler(message.guild.id).play(await ytdl(videoUrl));
                 })
             });
     
@@ -88,7 +88,7 @@ module.exports = {
     
             message.channel.send("Now playing: " + songInfo.title);
 
-            message.client.getVoiceHandler(message.guild.id).play(ytdl(args[0]));
+            message.client.getVoiceHandler(message.guild.id).play(await ytdl(args[0]));
         }
     }
 };

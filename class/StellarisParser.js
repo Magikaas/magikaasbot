@@ -1,24 +1,30 @@
 const fs = require("fs");
 const { LOG10E } = require("mathjs");
 
-const LINE_TYPE_CONSTANT =      "ltc";
-const LINE_tYPE_BLOCKSTART =    "ltbs";
-const LINE_TYPE_DEFAULT =       "ltd";
-const LINE_TYPE_BLOCKEND =      "ltbe";
-const LINE_TYPE_COMMENT =       "ltcm";
+const LINE_TYPE_CONSTANT =      "constant";
+const LINE_tYPE_BLOCKSTART =    "blockstart";
+const LINE_TYPE_DEFAULT =       "default";
+const LINE_TYPE_BLOCKEND =      "blockend";
+const LINE_TYPE_COMMENT =       "comment";
+const LINE_TYPE_EMPTY =         "empty";
 
 const emptyRegex =              new RegExp(/^\s*(#.*)?$/);
 const defineRegex =             new RegExp(/(?<name>@[a-zA-Z0-9_]*)\s*=\s*(?<value>[a-zA-Z0-9\"]*)$/);
 const simpleObjectRegex =       new RegExp(/(?<name>[a-zA-Z0-9_]*)\s*=\s*\{\s*(?<var>[a-zA-Z0-9_]*)\s*=\s*(?<val>[@a-zA-Z0-9_\"\.]*)\s*\}/);
 const complexObjectRegex =      new RegExp(/(?<name>[a-zA-Z0-9_]*)\s*=\s*\{\s*/);
+const complexObjectEndRegex =   new RegExp(/^\s*\}/);
 const logicObjectRegex =        new RegExp(/NOT|AND/);
 
 class StellarisParser {
 
     constructor(client) {
         this.client = client;
-        this.depth = 0;
+        this.state = {
+            depth: 0,
+            lineNumber: 0
+        };
     }
+
     parse(fileName) {
         const fileContents = this.readFile(fileName);
 
@@ -28,67 +34,23 @@ class StellarisParser {
     readFile(fileName) {
         const fileContents = fs.readFileSync(fileName);
 
-        // console.log(fileContents.toString().split("\n"));
-
         return fileContents.toString();
     }
 
-    process(contents) {
-        let inBlock = true;
-
-        for(let line of contents.split("\n")) {
-            const lineType = this.determineLineType(line);
-
-            // console.log(lineType);
-            continue;
-            switch (lineType) {
-                case LINE_TYPE_CONSTANT:
-                    // console.log("This line is a constant definition: " + line);
-                    console.log("CON - " + line);
-                    break;
-                case LINE_tYPE_BLOCKSTART:
-                    console.log("BLK - " + line);
-                    break;
-                case LINE_TYPE_BLOCKEND:
-                    console.log("BLE - " + line);
-                    break;
-                default:
-                    console.error("UNK - " + line);
-            }
-        }
-
-        return {};
-    }
-
-    readComplexObject(lines, level, context) {
-        let lineNumber = 0;
+    readComplexObject(lines) {
+        let relativeLineNumber = 0;
 
         console.log("Amount of lines to read: " + lines.length);
 
+        let lineType = "";
+
         let result = null;
         for (let line of lines) {
-            lineNumber++;
-            result = emptyRegex.exec(line);
+            relativeLineNumber++;
+            
+            lineType = this.determineLineType(line);
 
-            if (result) {
-                this.logMessage("Empty line: " + lineNumber);
-                continue;
-            }
-
-            result = simpleObjectRegex.exec(line);
-
-            if (result) {
-                this.logMessage("Simple Object: " + lineNumber);
-                continue;
-            }
-
-            result = complexObjectRegex.exec(line);
-
-            if (result) {
-                this.logMessage("Complex Object " + lineNumber);
-                
-                continue;
-            }
+            this.logMessage(relativeLineNumber + "|" + line.replace(/\r?\n|\r/, "") + ": " + lineType);
         }
     }
 
@@ -97,7 +59,7 @@ class StellarisParser {
     }
 
     logMessage(text, category = "stellaris_parser") {
-        console.log(text);
+        // console.log(text);
         this.client.writeLog(text, category);
     }
 
@@ -124,8 +86,12 @@ class StellarisParser {
             return LINE_tYPE_BLOCKSTART;
         }
 
-        if (bareLine === "}") {
+        if (bareLine.endsWith("}")) {
             return LINE_TYPE_BLOCKEND;
+        }
+
+        if (bareLine === "") {
+            return LINE_TYPE_EMPTY;
         }
 
         return LINE_TYPE_DEFAULT;

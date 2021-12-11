@@ -53,7 +53,9 @@ class VoiceHandler {
     }
 
     async connect() {
-        return this._channel.join();
+        if (this._channel) {
+            return this._channel.join();
+        }
     }
 
     disconnect() {

@@ -38,15 +38,8 @@ module.exports = {
             for (let i = 0; i < step; i++) {
                 indentRecipe += " -";
             }
-
-            if (princess) {
-                messageString += indentCurr + " " + bee + "\n";
-                messageString += indentRecipe + " " + beeRecipe['princess'] + "\n";
-                messageString += indentRecipe + " " + beeRecipe['drone'] + "\n";
-            }
-            else {
-                messageString += indentCurr + " " + bee + "\n";
-            }
+            
+            messageString += indentCurr + " " + bee + "\n";
 
             step++;
 
@@ -65,9 +58,16 @@ module.exports = {
 
         const fullRecipeTree = recursiveBeeCalculate(requestedBee);
 
-        console.log(messageString.length);
+        recursiveRecipePrinter = function(recipeTree) {
+            
+        }
 
-        console.log(messageString.split("\n").length);
+        var recipe = [];
+        for (var bee in fullRecipeTree) {
+            recipe = fullRecipeTree
+        }
+
+        console.log(fullRecipeTree);
 
         let messageParts = [];
 
@@ -78,6 +78,8 @@ module.exports = {
 
             messageString = messageString.substring(index);
         }
+
+        messageParts.push(messageString);
 
         if (messageParts.length > 0) {
             for (let msg of messageParts) {
