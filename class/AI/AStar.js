@@ -145,4 +145,4 @@ class AStar {
     }
 }
 
-module.exports.AStar = AStar;
+module.exports = AStar;

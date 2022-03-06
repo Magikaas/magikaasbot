@@ -146,6 +146,4 @@ class VoiceHandler {
     }
 }
 
-module.exports = {
-    VoiceHandler
-}
+module.exports = VoiceHandler;

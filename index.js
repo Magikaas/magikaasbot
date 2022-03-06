@@ -1,15 +1,82 @@
 const fs = require('fs');
 const Discord = require('discord.js');
+const Sequelize = require('sequelize');
 const client = new Discord.Client();
 
 // Import the config.
 let config = require('../config.json');
 const botEnv = require('./env.json');
+const Tables = require('./mysql/tables');
 const VoiceHandler = require('./class/VoiceHandler');
 const RoleManager = require('./class/RoleManager');
 const YoutubeQueueHandler = require('./class/YoutubeQueueHandler');
 const Command = require('./class/Command');
 const Queue = require('./class/Queue');
+
+const sequelize = new Sequelize('database', 'user', 'password', {
+    host: 'localhost',
+    dialect: 'sqlite',
+    logging: false,
+    // SQLite only
+    storage: 'database.sqlite',
+});
+
+function prepDatabase() {
+    for (let table in Tables) {
+        Tables[table].sync({ alter: true, force: true }).then(() => {
+            console.log("Syncing " + table + " table");
+        });
+    }
+}
+
+console.log("Preparing Database");
+prepDatabase();
+
+// Neural Networking
+const brain = require("brain.js");
+const AutoDiscovery = require('./class/AutoDiscovery');
+
+const discoverer = new AutoDiscovery();
+discoverer.run();
+
+const net = new brain.NeuralNetwork({
+    hiddenLayers: [100, 100, 100]
+});
+
+client.net = net;
+client.ai = {};
+
+function train() {
+    const trainingResult = client.trainNet(client.ai.trainingData);
+
+    client.ai.errorMargin = trainingResult.error;
+
+    return trainingResult;
+}
+
+client.train = train;
+
+function trainNet(trainingData) {
+    try {
+        return client.net.train(trainingData, {
+            logPeriod: 500,
+            log: (error) => console.log(error)
+        });
+    }
+    catch (e) {
+        console.log(e.message);
+        console.log(trainingData);
+        return {};
+    }
+}
+
+client.trainNet = trainNet;
+
+function runNet(data) {
+    return client.net.run(data);
+}
+
+client.runNet = runNet;
 
 client.commands = new Discord.Collection();
 
@@ -18,7 +85,7 @@ const ERRORLOGFILE = "./error.log";
 client.tts = {
     language: "nl-NL",
     gender: "MALE",
-    queue: new Queue.Queue(),
+    queue: new Queue(),
     playing: false
 };
 
@@ -31,7 +98,7 @@ function guaranteeFile(file) {
     }
 }
 
-const roleManager = new RoleManager.RoleManager();
+const roleManager = new RoleManager();
 
 config = config["magikaasbot"][botEnv.version];
 const prefix = config.prefix;
@@ -89,7 +156,7 @@ function getVoiceHandler(guildId) {
 client.getVoiceHandler = getVoiceHandler;
 
 function addVoiceHandler(guildId) {
-    client.voiceHandlers[guildId] = new VoiceHandler.VoiceHandler(client);
+    client.voiceHandlers[guildId] = new VoiceHandler(client);
 }
 
 client.addVoiceHandler = addVoiceHandler;
@@ -104,7 +171,7 @@ client.on("message", async function(message) {
 
     let commandObject = client.commands.get(commandName);
 
-    const command = new Command.Command(commandObject, args, message, client);
+    const command = new Command(commandObject, args, message, client);
 
     command.run();
 });
@@ -154,6 +221,6 @@ client.voiceHandlers = {};
 
 client.roleManager = roleManager;
 
-client.ytQueueHandler = new YoutubeQueueHandler.YoutubeQueueHandler();
+client.ytQueueHandler = new YoutubeQueueHandler();
 
 client.login(config.token);

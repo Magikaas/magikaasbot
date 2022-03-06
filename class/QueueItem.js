@@ -43,6 +43,4 @@ class QueueItem {
     }
 }
 
-module.exports = {
-    QueueItem
-}
+module.exports = QueueItem;

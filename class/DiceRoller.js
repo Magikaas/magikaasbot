@@ -2,11 +2,9 @@ const { isNumeric } = require("mathjs");
 const math = require("mathjs");
 
 class DiceRoller {
-
-    advantageModifier = "";
-
     constructor() {
         this.result = 0;
+        this.advantageModifier = "";
     }
 
     roll(diceArray) {
@@ -159,6 +157,4 @@ class Die {
     }
 }
 
-module.exports = {
-    DiceRoller
-}
+module.exports = DiceRoller;

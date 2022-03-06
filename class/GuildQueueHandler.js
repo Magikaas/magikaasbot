@@ -29,6 +29,4 @@ class GuildQueueHandler {
     }
 }
 
-module.exports = {
-    GuildQueueHandler
-}
+module.exports = GuildQueueHandler;

@@ -21,4 +21,4 @@ class PropertySet {
     }
 }
 
-module.exports.PropertySet = PropertySet;
+module.exports = PropertySet;

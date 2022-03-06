@@ -98,6 +98,4 @@ class StellarisParser {
     }
 }
 
-module.exports = {
-    StellarisParser
-}
+module.exports = StellarisParser;

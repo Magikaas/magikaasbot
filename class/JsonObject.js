@@ -2,7 +2,7 @@ const DataObject = require("./DataObject");
 const fs = require('fs');
 const mkdirp = require("mkdirp");
 
-class JsonObject extends DataObject.DataObject {
+class JsonObject extends DataObject {
 
     constructor(id = false) {
         super();
@@ -88,6 +88,4 @@ class JsonObject extends DataObject.DataObject {
     }
 }
 
-module.exports = {
-    JsonObject
-}
+module.exports = JsonObject;

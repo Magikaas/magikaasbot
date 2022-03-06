@@ -1,6 +1,6 @@
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const { XMLHttpRequest } = require("xmlhttprequest");
 
-module.exports = class HttpClient {
+class HttpClient {
     constructor(baseUrl, path) {
         this._baseUrl = baseUrl;
         this._path = path;
@@ -60,3 +60,5 @@ module.exports = class HttpClient {
         };
     }
 }
+
+module.exports = HttpClient;

@@ -30,6 +30,4 @@ class RoleManager {
     }
 }
 
-module.exports = {
-    RoleManager
-}
+module.exports = RoleManager;

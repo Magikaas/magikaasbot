@@ -1,9 +1,9 @@
 const DataObject = require("./DataObject");
 
-class DatabaseObject extends DataObject.DataObject {
+class DatabaseObject extends DataObject {
 
     constructor(connection) {
-        parent();
+        super();
         
         this.connection = connection;
     }
@@ -52,6 +52,4 @@ class DatabaseObject extends DataObject.DataObject {
     }
 }
 
-module.exports = {
-    DatabaseObject
-}
+module.exports = DatabaseObject;

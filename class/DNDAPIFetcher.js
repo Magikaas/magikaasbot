@@ -1,14 +1,17 @@
 const https = require("https");
 const HttpClient = require("../class/HttpClient");
 
-module.exports = class DNDAPIFetcher {
-
+class DNDAPIFetcher {
     constructor() {
         this._baseURL = "https://www.dnd5eapi.co/api/";
     }
     
     fetchSpell(spellName) {
         return this.fetch('spells', spellName.toLowerCase());
+    }
+
+    fetchSpells() {
+        return this.fetch('spells', "");
     }
 
     fetch(type, name) {
@@ -22,3 +25,5 @@ module.exports = class DNDAPIFetcher {
         return httpClient.get();
     }
 }
+
+module.exports = DNDAPIFetcher;

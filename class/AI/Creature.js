@@ -3,7 +3,7 @@ class Creature {
         this._x = x;
         this._y = y;
         if (!props) {
-            props = new 
+            
         }
         this._props = props;
     }
