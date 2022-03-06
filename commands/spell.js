@@ -17,6 +17,12 @@ module.exports = {
                 if (jsonData.area_of_effect) {
                     aoe = " (" + jsonData.area_of_effect.size + "ft " + jsonData.area_of_effect.type + ")";
                 }
+                
+                let classes = [];
+
+                for (let classInfo of jsonData.classes) {
+                    classes.push(classInfo.name);
+                }
 
                 const embedMessage = new Discord.MessageEmbed()
                     .setColor(".#0099ff")
@@ -30,7 +36,8 @@ module.exports = {
                         { name: "Concentration", value: jsonData.concentration ? "Yes" : "No", inline: true },
                         { name: "Components", value: jsonData.components.join(", "), inline: true },
                         { name: "Description", value: jsonData.desc },
-                        { name: "At Higher Levels", value: jsonData.higher_level}
+                        { name: "At Higher Levels", value: jsonData.higher_level },
+                        { name: "Classes", value: classes.join(", ") }
                     ]);
 
                 message.reply(embedMessage);
