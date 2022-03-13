@@ -22,9 +22,36 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 });
 
 function prepDatabase() {
-    for (let table in Tables) {
-        Tables[table].sync({ alter: true, force: true }).then(() => {
-            console.log("Syncing " + table + " table");
+    let importData = {};
+    let table = {};
+    let importFile = "";
+    let where = {};
+    for (let t in Tables) {
+        table = Tables[t];
+        table.sync({ alter: true, force: true }).then((tableObject) => {
+            importFile = "./data/" + tableObject.name + ".json";
+            if (!fs.existsSync(importFile)) {
+                return;
+            }
+            
+            importData = require(importFile);
+            for (let record of importData.data) {
+                where = {};
+                where[importData.uniqProp] = record[importData.uniqProp];
+                let query = {
+                    attributes: importData.fields,
+                    where: where
+                };
+                tableObject.findAll(query).then((data) => {
+                    if (data.length == 0) {
+                        tableObject.create(record);
+                    }
+                }).catch((err) => {
+                    console.log("Error", tableObject, query, err);
+                });
+            }
+        }).catch((err) => {
+            console.error("Table sync error", err);
         });
     }
 }

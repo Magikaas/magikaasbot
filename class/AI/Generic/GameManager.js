@@ -2,6 +2,7 @@ const General = require("../../General");
 const Game = require("./Game");
 const Player = require("./Player");
 const ClassRepository = require("../ClassRepository");
+const { DBGame, DBPlayer } = require("../../../mysql/tables");
 
 const TICK_RATE = 5;
 
@@ -86,16 +87,16 @@ class GameManager extends General {
         return this.getGame(gameId).getCurrentTurnPlayer().getId();
     }
 
-    handleMove(move) {
-        const game = this.getGame(move.game);
+    async handleMove(move) {
+        const game = await this.getGame(move.game);
 
         game.handleMove(move);
 
         this.updateGame(game);
     }
 
-    cycleTurn(move) {
-        let game = this.getGame(move.game);
+    async cycleTurn(move) {
+        let game = await this.getGame(move.game);
         const curTurn = game.getCurrentTurnPlayer();
 
         let keys = Object.keys(game.getPlayers());
@@ -130,8 +131,8 @@ class GameManager extends General {
      * @param {Player} player 
      * @returns {Boolean}
      */
-    checkIsTurn(gameId, player) {
-        const game = this.getGame(gameId);
+    async checkIsTurn(gameId, player) {
+        const game = await this.getGame(gameId);
 
         const currentTurn = game.getCurrentTurnPlayer();
 
@@ -147,19 +148,29 @@ class GameManager extends General {
         return this._registeredGameclasses[gameName];
     }
 
-    initiateGame(gameName) {
+    /**
+     * Initiate a new game of the type provided.
+     * 
+     * @param {String} gameName 
+     * @returns 
+     */
+    async initiateGame(gameName) {
         const gameClassName = this.getGameClass(gameName);
 
         const repo = ClassRepository;
-        const gameClass = repo.fetchClass(gameClassName);
+        const game = repo.fetchClass(gameClassName);
 
-        const game = gameClass;
+        console.log("Initiated game");
 
-        game.setId(this.getNewGameId());
+        const boardstate = await game.loadDefaultBoardstate();
+        
+        game.setBoardstate(boardstate);
+        
+        await game.save();
+
+        console.log("Game saved");
 
         this.addGame(game);
-
-        game.sav
 
         return game;
     }
@@ -178,10 +189,23 @@ class GameManager extends General {
      * @param {any} gameId 
      * @returns {Game}
      */
-    getGame(gameId) {
-        const type = Game.getGameType(gameId);
-        console.log("Type", type);
-        return this._games[gameId];
+    async getGame(gameId, force = false) {
+        if (this._games[gameId]) {
+            return this._games[gameId];
+        }
+
+        const data = await DBGame.findOne({
+            attributes: ["id"],
+            where: {
+                id: gameId
+            },
+            include: DBPlayer
+        }).catch((err) => {
+            console.log("Error when getting game", err);
+        });
+
+        console.log("Get game", data);
+        return false;
     }
 
     /**

@@ -3,8 +3,8 @@ const hash = require("object-hash");
 class Manager {
     constructor() {}
 
-    setBoardState(checksum, boardState) {
-        Manager.boardStates[checksum] = boardState;
+    setBoardState(checksum, boardstate) {
+        Manager.boardStates[checksum] = boardstate;
     }
 
     getBoardState(checksum) {

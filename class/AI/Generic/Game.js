@@ -1,6 +1,7 @@
-const { DBGame, DBGameType } = require("../../../mysql/tables");
-const BoardState = require("./BoardState");
+const { DBGameType, DBPlayer, DBGame } = require("../../../mysql/tables");
+const BoardState = require("./Boardstate");
 const DBObject = require("./DB/DBObject");
+const GameType = require("./GameType");
 const Player = require("./Player");
 
 class Game extends DBObject {
@@ -9,6 +10,7 @@ class Game extends DBObject {
         this._players = {};
         this._type = "generic";
         this._boardstate = {};
+        this._boardstateClass = "";
         this._currentTurnPlayer = {};
     }
 
@@ -18,6 +20,25 @@ class Game extends DBObject {
      */
     addPlayer(player) {
         this._players[player.getId()] = player;
+        
+        const playerData = {
+            gameId: this.getId(),
+            data: "",
+            id: player.getId()
+        };
+
+        // Only add player if it's not already in this game
+        DBPlayer.findOne({
+            attributes: ["id", "data", "gameid"],
+            where: playerData
+        }).then((result) => {
+            if (!result || result.length == 0) {
+                DBPlayer.create(playerData);
+            }
+        }).catch((err) => {
+            console.log("Failed to find gameplayer", err);
+        });
+        
         return this;
     }
 
@@ -75,7 +96,7 @@ class Game extends DBObject {
     /**
      * Set this game's board data
      * 
-     * @param {BoardState} boardstate 
+     * @param {Boardstate} boardstate 
      * @returns {Game}
      */
     setBoardstate(boardstate) {
@@ -86,10 +107,49 @@ class Game extends DBObject {
     /**
      * Fetch this game's board
      * 
-     * @returns {BoardState}
+     * @returns {Boardstate}
      */
     getBoardstate() {
         return this._boardstate;
+    }
+
+    initiateBoardstate() {
+        const boardstate = this.getRepo().fetchClass(this.getBoardstateClass());
+
+        if (!boardstate) {
+            console.log("Boardstateclass", boardstate, this.getBoardstateClass());
+            return null;
+        }
+
+        boardstate.initiate();
+
+        return boardstate;
+    }
+
+    async loadDefaultBoardstate() {
+        const gameType = await GameType.getByName(this.getType());
+
+        const defaultBoardstateId = gameType.getDefaultBoardstateId();
+
+        let boardstate = {};
+
+        if (defaultBoardstateId === 0) {
+            boardstate = this.initiateBoardstate();
+        }
+        else {
+            boardstate = await BoardState.load(defaultBoardstateId);
+        }
+
+        return boardstate;
+    }
+
+    setBoardstateClass(boardstateClass) {
+        this._boardstateClass = boardstateClass;
+        return this;
+    }
+
+    getBoardstateClass() {
+        return this._boardstateClass;
     }
 
     getCurrentTurnPlayer() {
@@ -99,6 +159,10 @@ class Game extends DBObject {
     setPlayerTurn(player) {
         this._currentTurnPlayer = player;
         return this;
+    }
+
+    getClass() {
+        return this.class
     }
 
     getRandomPlayer() {
@@ -127,18 +191,22 @@ class Game extends DBObject {
         this._currentTurnPlayer = player;
     }
 
+    checkIfWon() {
+        throw new Error("Implement this function(" + arguments.callee.name + ") in " + this.constructor.name + ".");
+    }
+
+    getWinner() {
+        throw new Error("Implement this function(" + arguments.callee.name + ") in " + this.constructor.name + ".");
+    }
+
     static getGameType(id) {
         try {
-            const output = await DBGameType.findAll({
+            return DBGameType.findOne({
                 attribute: ['type_id'],
                 where: {
                     id: id
                 }
             });
-    
-            console.log("Game DB", id, output, output.type_id);
-    
-            return output.type_id;
         }
         catch (error) {
             console.log("Error", error);
@@ -147,11 +215,44 @@ class Game extends DBObject {
         }
     }
 
+    static async load(id) {
+        const output = await DBGame.findOne({
+            attributes: ['id', 'data'],
+            where: {
+                id: id
+            }
+        });
+
+        const boardstateClass = this.getRepo().fetchClass(this.getBoardstateClass());
+
+        console.log("LOAD: Board state class", boardstateClass, this.getBoardstateClass());
+
+        const boardstate = boardstateClass.load(output.boardstate_id);
+
+        let game = new $(this.constructor.name)();
+        game.setBoardstate(boardstate);
+
+        return game;
+    }
+
     static load(id) {
         throw new Error("Implement this function in " + this.constructor.name + ". Unable to load Boardstate with ID " + id);
     }
 
-    save() {
+    static create(gameTypeId) {
+        const gameType = GameType.load(gameTypeId);
+
+        const game = new Game();
+
+        game.setType(gameType.getId());
+        game.setBoardstateClass(gameType.getBoardstateClass());
+
+        game.save();
+
+        return game;
+    }
+
+    async save() {
         super.save();
     }
 }

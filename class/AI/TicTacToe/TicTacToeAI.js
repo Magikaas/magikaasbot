@@ -10,7 +10,6 @@ class TicTacToeAI extends AI {
         this._actualTicks = 0;
         this._weightedMoves = {};
         this._manager = require("../Generic/GameManager");
-        this.load();
     }
 
     // Start
@@ -35,7 +34,7 @@ class TicTacToeAI extends AI {
         }
     }
 
-    update() {
+    async update() {
         if (!this.getGameId()) {
             return;
         }
@@ -44,13 +43,14 @@ class TicTacToeAI extends AI {
             return;
         }
 
-        const weightedMoves = this.getAvailableMoves();
+        console.log("Update " + this.constructor.name, this.getId());
 
-        const pickedMove = this.pickRandomWeightedMove(weightedMoves);
+        const availableMoves = await this.getAvailableMoves();
+
+        const pickedMove = this.pickRandomWeightedMove(availableMoves);
 
         if (!pickedMove) {
-            console.log("Weighted moves", weightedMoves);
-            console.log("Total weight", this.getTotalWeight(weightedMoves));
+            return;
         }
 
         const moveObject = {
@@ -66,28 +66,13 @@ class TicTacToeAI extends AI {
         this.save();
     }
 
-    getAvailableMoves() {
-        return this.getBoardstate().getAvailableMoves();
+    async getAvailableMoves() {
+        const boardstate = await this.getBoardstate();
+        return boardstate.getAvailableMoves();
     }
 
-    /**
-     * 
-     * @param {any} id 
-     * @returns {TicTacToeAI}
-     */
-    static load(id) {
-        const loader = super.load(id);
+    async save() {
 
-        loader.then(() => {
-
-        });
-
-        const ai = new TicTacToeAI();
-
-        return ai;
-    }
-
-    save() {
     }
 }
 

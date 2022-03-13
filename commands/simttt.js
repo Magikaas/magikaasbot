@@ -8,11 +8,13 @@ module.exports = {
         const repo = ClassRepository;
         const manager = repo.fetchClass("GameManager");
 
-        const game = manager.initiateGame("tictactoe");
+        const game = await manager.initiateGame("tictactoe");
         
         const tictactoeAI = repo.fetchClass("TicTacToeAI");
 
         tictactoeAI.setId(123);
+
+        tictactoeAI.save();
 
         manager.addPlayerToGame(game, tictactoeAI);
         tictactoeAI.simulate();

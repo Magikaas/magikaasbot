@@ -1,4 +1,4 @@
-const BoardState = require("./BoardState");
+const Boardstate = require("./Boardstate");
 const DBObject = require("./DB/DBObject");
 
 class Board extends DBObject {
@@ -9,20 +9,20 @@ class Board extends DBObject {
 
     /**
      * 
-     * @param {BoardState} boardState 
+     * @param {Boardstate} boardstate 
      * @returns 
      */
-    setBoardState(boardState) {
-        this._boardstate[this.hash(boardState._data)] = boardState;
+    setBoardState(boardstate) {
+        this._boardstate[this.hash(boardstate._data)] = boardstate;
         return this;
     }
 
     /**
      * 
-     * @returns {BoardState}
+     * @returns {Boardstate}
      */
     getBoardState() {
-        return BoardState.load(this._currentBoardstate);
+        return Boardstate.load(this._currentBoardstate);
     }
 }
 

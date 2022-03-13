@@ -5,6 +5,8 @@ class GameType {
         this._id = null;
         this._name = null;
         this._className = null;
+        this._boardstateClass = null;
+        this._defaultBoardstateId = 0;
     }
 
     getId() {
@@ -34,28 +36,53 @@ class GameType {
         return this;
     }
 
+    getBoardstateClass() {
+        return this._boardstateClass;
+    }
+
+    setBoardstateClass(boardstateClass) {
+        this._boardstateClass = boardstateClass;
+        return this;
+    }
+
+    getDefaultBoardstateId() {
+        return this._defaultBoardstateId;
+    }
+    
+    setDefaultBoardstateId(defaultBoardstateId) {
+        this._defaultBoardstateId = defaultBoardstateId;
+        return this;
+    }
+
+    /**
+     * 
+     * @param {Object} attr 
+     * @returns {GameType}
+     */
     static async load(attr) {
-        const output = DBGameType.findAll({
+        let output = await DBGameType.findAll({
             attributes: ['id', 'name', 'class'],
             where: attr
         });
 
-        console.log("Gametype DB", output);
+        if (output.length > 0) {
+            output = output.pop();
+        }
 
         let obj = new GameType();
 
         obj.setId(output.id)
         .setName(output.name)
-        .setClassName(output.classname);
+        .setClassName(output.class);
 
         return obj;
     }
 
-    static async getById(id) {
+    static getById(id) {
         return this.load({ id: id });
     }
 
-    static async getByName(gametype) {
+    static getByName(gametype) {
         return this.load({ name: gametype });
     }
 }

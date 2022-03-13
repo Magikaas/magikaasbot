@@ -1,31 +1,29 @@
-const GameManager = require("./GameManager");
-const Tables = require('../../../mysql/tables');
 const Player = require("./Player");
 const ClassRepository = require("../ClassRepository");
-const Board = require("./Board");
 
 class AI extends Player {
     constructor() {
         super();
 
-        const repo = ClassRepository;
+        this._moveWeights = {};
+
+        // TODO: Remove this and do it manually when instantiating an AI player
+        const repo = this.getRepo();
         const manager = repo.fetchClass("GameManager");
         manager.registerPlayer(this);
-
-        this._moveWeights = {};
     }
 
     /**
      * 
-     * @returns {Board}
+     * @returns {Boardstate}
      */
-    getBoardstate() {
+    async getBoardstate() {
         const repo = ClassRepository;
         const manager = repo.fetchClass("GameManager");
 
-        const game = manager.getGame(this.getGameId());
+        const game = await manager.getGame(this.getGameId());
 
-        return game.getBoardstate();
+        return await game.getBoardstate();
     }
 
     /**
@@ -77,22 +75,6 @@ class AI extends Player {
         const manager = repo.fetchClass("GameManager");
         
         return manager.checkIsTurn(this.getGameId(), this);
-    }
-
-    /**
-     * Load this AI's data from the database
-     * 
-     * @param {any} id 
-     * @returns {Obj}
-     */
-    load(id) {
-        return;
-        const data = Tables.Player.findAll({
-            attributes: ['id', 'data'],
-            where: {'id': id}
-        });
-        
-        return data;
     }
 
     updateMoveWeight(board, move, delta) {
