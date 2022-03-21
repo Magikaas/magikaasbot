@@ -1,8 +1,5 @@
 const General = require("../../General");
-const Game = require("./Game");
-const Player = require("./Player");
 const ClassRepository = require("../ClassRepository");
-const { DBGame, DBPlayer } = require("../../../mysql/tables");
 
 const TICK_RATE = 5;
 
@@ -17,7 +14,7 @@ class GameManager extends General {
         this._tickLengthMs = 1000 / TICK_RATE;
         this._prev = Date.now();
         this._actualTicks = 0;
-        this._players = {}; // TODO: REPLACE WITH DATABASE INTERACTION
+        this._gameplayers = {}; // TODO: REPLACE WITH DATABASE INTERACTION
         this._registeredGameclasses = {};
         this._games = {};
         this.startGameLoop();
@@ -26,14 +23,14 @@ class GameManager extends General {
     /**
      * Register a player with the Manager
      * 
-     * @param {Player} player
+     * @param {GamePlayer} gameplayer
      */
-    registerPlayer(player) {
-        this._players[player.getId()] = player;
+    registerPlayer(gameplayer) {
+        this._gameplayers[gameplayer.getId()] = gameplayer;
     }
 
     getPlayer(id) {
-        return this._players[id];
+        return this._gameplayers[id].getPlayer();
     }
 
     startGameLoop() {
@@ -71,6 +68,12 @@ class GameManager extends General {
             moves.push(move);
         }
 
+        let wonGame = null;
+
+        if (wonGame = this.getFirstUnfinishedWonGame()) {
+            
+        }
+
         if (moves.length == 0) {
             //No moves to handle, just finish update
             return;
@@ -78,9 +81,26 @@ class GameManager extends General {
 
         // Handle submitted moves
         for (let move of moves) {
+            // console.log("Move data", move);
             this.handleMove(move);
             this.cycleTurn(move);
         }
+    }
+
+    getFirstUnfinishedWonGame() {
+        const games = this.getGames();
+        let game = {};
+
+        for (let g of Object.entries(games).filter(([k, g]) => !g.isFinished())) {
+            game = g[1];
+            game.checkIfWon();
+
+            if (game.hasWinner()) {
+                return game;
+            }
+        }
+
+        return null;
     }
 
     getGameTurn(gameId) {
@@ -90,7 +110,9 @@ class GameManager extends General {
     async handleMove(move) {
         const game = await this.getGame(move.game);
 
-        game.handleMove(move);
+        await game.handleMove(move);
+
+        game.save();
 
         this.updateGame(game);
     }
@@ -99,11 +121,19 @@ class GameManager extends General {
         let game = await this.getGame(move.game);
         const curTurn = game.getCurrentTurnPlayer();
 
+        if (!curTurn) {
+            console.trace("No current turn found", curTurn);
+        }
+
         let keys = Object.keys(game.getPlayers());
 
         keys = keys.filter(p => p != curTurn.getId());
 
         const newTurn = game.getPlayers()[keys[Math.floor(keys.length * Math.random())]];
+
+        if (!newTurn) {
+            console.log("Players", game.getPlayers(), "Current turn", curTurn, "New Turn", newTurn, "Keys", keys);
+        }
 
         game.setPlayerTurn(newTurn);
     }
@@ -118,6 +148,7 @@ class GameManager extends General {
 
     submitMove(move) {
         this._submittedMoves.push(move);
+        return this;
     }
 
     hrtimeMs() {
@@ -131,19 +162,33 @@ class GameManager extends General {
      * @param {Player} player 
      * @returns {Boolean}
      */
-    async checkIsTurn(gameId, player) {
-        const game = await this.getGame(gameId);
+    async checkIsTurn(game, player) {
+        if (!game) {
+            console.trace("Checking turn for non-existent game");
+            return false;
+        }
 
         const currentTurn = game.getCurrentTurnPlayer();
 
         return currentTurn.getId() == player.getId();
     }
 
+    /**
+     * 
+     * @param {String} gameName 
+     * @param {Game} classObject 
+     * @returns {GameManager}
+     */
     registerGame(gameName, classObject) {
         this._registeredGameclasses[gameName] = classObject;
         return this;
     }
 
+    /**
+     * 
+     * @param {String} gameName 
+     * @returns {Game}
+     */
     getGameClass(gameName) {
         return this._registeredGameclasses[gameName];
     }
@@ -151,24 +196,20 @@ class GameManager extends General {
     /**
      * Initiate a new game of the type provided.
      * 
-     * @param {String} gameName 
-     * @returns 
+     * @param {String} gameName
+     * @returns {Game}
      */
     async initiateGame(gameName) {
         const gameClassName = this.getGameClass(gameName);
 
         const repo = ClassRepository;
-        const game = repo.fetchClass(gameClassName);
-
-        console.log("Initiated game");
+        const game = await repo.fetchClass(gameClassName).constructor.create();
 
         const boardstate = await game.loadDefaultBoardstate();
         
         game.setBoardstate(boardstate);
         
         await game.save();
-
-        console.log("Game saved");
 
         this.addGame(game);
 
@@ -186,6 +227,14 @@ class GameManager extends General {
 
     /**
      * 
+     * @returns {Array}
+     */
+    getGames() {
+        return this._games;
+    }
+
+    /**
+     * 
      * @param {any} gameId 
      * @returns {Game}
      */
@@ -193,42 +242,28 @@ class GameManager extends General {
         if (this._games[gameId]) {
             return this._games[gameId];
         }
-
-        const data = await DBGame.findOne({
-            attributes: ["id"],
-            where: {
-                id: gameId
-            },
-            include: DBPlayer
-        }).catch((err) => {
-            console.log("Error when getting game", err);
-        });
-
-        console.log("Get game", data);
-        return false;
+        
+        return null;
     }
 
     /**
      * 
      * @param {Game} game 
+     * @returns {GameManager}
      */
     addGame(game) {
         this._games[game.getId()] = game;
         return this;
     }
 
+    /**
+     * 
+     * @param {Game} game 
+     * @returns {GameManager}
+     */
     updateGame(game) {
         this.addGame(game);
-    }
-
-    getNewGameId() {
-        // Currently only based on counts, should be based on database ID
-        let c = 1;
-        for (let g in this._games) {
-            c++;
-        }
-
-        return c;
+        return this;
     }
 
     /**
@@ -236,7 +271,7 @@ class GameManager extends General {
      * @param {Game} game 
      * @param {Player} player 
      */
-    addPlayerToGame(game, player) {
+    async addPlayerToGame(game, player) {
         if (typeof game != 'object') {
             game = this.getGame(game.getId());
         }
@@ -245,12 +280,31 @@ class GameManager extends General {
             throw new Error('No game found for ID ' + gameId);
         }
 
-        this.registerPlayer(player);
-
-        player.setGame(game.getId());
-        game.addPlayer(player);
+        player.setGame(game);
+        player = await game.addPlayer(player);
 
         this.updateGame(game);
+
+        const GamePlayer = require("./GamePlayer");
+
+        let gameplayer = await GamePlayer.loadByData(game, player);
+
+        if (!gameplayer) {
+            gameplayer = GamePlayer.create();
+
+            gameplayer.setSide(player.getSide());
+        }
+        else {
+            if (!gameplayer.getSide) {
+                console.trace("Gameplayer can't get side", gameplayer);
+            }
+            player.setSide(gameplayer.getSide());
+        }
+
+        if (gameplayer.getId()) {
+            this.registerPlayer(gameplayer);
+            return this;
+        }
 
         return this;
     }

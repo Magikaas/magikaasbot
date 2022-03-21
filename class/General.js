@@ -1,17 +1,29 @@
 const crypto = require('crypto');
 const ClassRepository = require("./AI/ClassRepository");
-const DatabaseState = require('./DatabaseState');
 
 class General {
     constructor() {
         const repo = ClassRepository;
         repo.registerClass(this.constructor.name, this.constructor);
-        this._databaseState = {};
+
+        // Proxy for getters
+        return new Proxy(this, {
+            get: function(object, prop, param) {
+                if (prop in object) return object[prop];
+
+                if (prop === 'then') return null;
+
+                return function () {
+                    console.trace("NO FUNCTION FOUND", prop);
+                    return false;
+                }
+            }
+        });
     }
 
     hash(value) {
-        const md5sum = crypto.createHash('md5');
-        return md5sum.digest(value);
+        const md5sum = crypto.createHash('md5').update(value.toString());
+        return md5sum.digest('hex');
     }
 
     /**
@@ -21,38 +33,6 @@ class General {
      */
     getRepo() {
         return ClassRepository;
-    }
-
-    getDatabaseState(key) {
-        return this._databaseState[key] ? this._databaseState[key] : DatabaseState.Idle;
-    }
-
-    isUnderDBInteraction(key) {
-        return this.getDatabaseState(key) !== DatabaseState.Idle;
-    }
-
-    isLoading(key) {
-        return this.getDatabaseState(key) === DatabaseState.Loading;
-    }
-
-    isSaving(key) {
-        return this.getDatabaseState(key) === DatabaseState.Saving;
-    }
-
-    setDatabaseState(key, value) {
-        this._databaseState[key] = value;
-    }
-
-    setSaving(key) {
-        this.setDatabaseState(key, DatabaseState.Saving);
-    }
-
-    setLoading(key) {
-        this.setDatabaseState(key, DatabaseState.Loading);
-    }
-
-    finish(key) {
-        this.setDatabaseState(key, DatabaseState.Idle);
     }
 }
 

@@ -31,7 +31,7 @@ class ClassRepository {
             // GameManager is a singleton, always return the singleton
             return require("./Generic/GameManager");
         }
-        console.log("Fetching class", className, "Cache:", cache);
+        // console.log("Fetching class", className);
         const classObj = this.classes[className];
         if (typeof classObj != 'undefined') {
             if (cache && this.isCached(className)) {

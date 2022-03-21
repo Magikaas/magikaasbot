@@ -59,8 +59,10 @@ module.exports = {
             input: {text: text},
             voice: {languageCode: language, ssmlGender: gender},
             audioConfig: {audioEncoding: 'MP3'},
-          };
+        };
+        console.log("Synthesize Speech");
         const [response] = await client.synthesizeSpeech(request);
+        console.log("Syhthesized speech");
         const writeFile = util.promisify(fs.writeFile);
         await writeFile(outputFile, response.audioContent, 'binary');
         console.log(`Audio content written to file: ${outputFile}`);

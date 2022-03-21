@@ -6,11 +6,6 @@ class AI extends Player {
         super();
 
         this._moveWeights = {};
-
-        // TODO: Remove this and do it manually when instantiating an AI player
-        const repo = this.getRepo();
-        const manager = repo.fetchClass("GameManager");
-        manager.registerPlayer(this);
     }
 
     /**
@@ -21,7 +16,7 @@ class AI extends Player {
         const repo = ClassRepository;
         const manager = repo.fetchClass("GameManager");
 
-        const game = await manager.getGame(this.getGameId());
+        const game = await this.getGame();
 
         return await game.getBoardstate();
     }
@@ -74,7 +69,7 @@ class AI extends Player {
         const repo = ClassRepository;
         const manager = repo.fetchClass("GameManager");
         
-        return manager.checkIsTurn(this.getGameId(), this);
+        return manager.checkIsTurn(this.getGame(), this);
     }
 
     updateMoveWeight(board, move, delta) {

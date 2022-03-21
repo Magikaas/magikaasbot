@@ -1,27 +1,39 @@
 const ClassRepository = require("../class/AI/ClassRepository");
-const Player = require("../class/AI/Generic/Player");
+const GameManager = require("../class/AI/Generic/GameManager");
+const TicTacToeAI = require("../class/AI/TicTacToe/TicTacToeAI");
 
 module.exports = {
     name: "simttt",
     description: "Command description",
     async execute(message, args) {
         const repo = ClassRepository;
-        const manager = repo.fetchClass("GameManager");
+        const manager = GameManager;
 
         const game = await manager.initiateGame("tictactoe");
         
-        const tictactoeAI = repo.fetchClass("TicTacToeAI");
+        let tictactoeAI = await TicTacToeAI.load(123);
 
-        tictactoeAI.setId(123);
+        if (!tictactoeAI) {
+            tictactoeAI = repo.fetchClass("TicTacToeAI").create();
 
-        tictactoeAI.save();
+            tictactoeAI.setId(123);
+
+            tictactoeAI.save();
+        }
 
         manager.addPlayerToGame(game, tictactoeAI);
         tictactoeAI.simulate();
+        
+        let otherAI = await TicTacToeAI.load(124);
 
-        const otherAI = repo.fetchClass("TicTacToeAI");
+        if (!otherAI) {
+            otherAI = repo.fetchClass("TicTacToeAI").create();
 
-        otherAI.setId(124);
+            otherAI.setId(124);
+
+            otherAI.save();
+        }
+
         manager.addPlayerToGame(game, otherAI);
         otherAI.simulate();
 

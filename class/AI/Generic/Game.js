@@ -1,53 +1,47 @@
-const { DBGameType, DBPlayer, DBGame } = require("../../../mysql/tables");
-const BoardState = require("./Boardstate");
+const { DBGameType, DBGame } = require("../../../mysql/tables");
+const ClassRepository = require("../ClassRepository");
 const DBObject = require("./DB/DBObject");
-const GameType = require("./GameType");
-const Player = require("./Player");
+const GAME_STATUS = require("./Globals");
 
 class Game extends DBObject {
+    static _dbObjectBase = DBGame;
     constructor() {
         super();
         this._players = {};
-        this._type = "generic";
+        this._type = {};
+        this._gametype = {};
         this._boardstate = {};
         this._boardstateClass = "";
         this._currentTurnPlayer = {};
+        this._status = GAME_STATUS.NEW;
+        this._winner = {};
+    }
+
+    async fixGametype() {
+        const GameType = require("./GameType");
+        const gametype = await GameType.loadByName(this.getType());
+        this.setGametype(gametype);
     }
 
     /**
      * 
      * @param {Player} player 
+     * @returns {GamePlayer}
      */
-    addPlayer(player) {
+    async addPlayer(player) {
         this._players[player.getId()] = player;
+
+        const GamePlayer = require("./GamePlayer");
+
+        let gameplayer = await GamePlayer.loadByData(this, player);
+
+        if (!gameplayer) {
+            gameplayer = GamePlayer.create();
+            gameplayer.setPlayer(player);
+            gameplayer.setGame(this);
+        }
         
-        const playerData = {
-            gameId: this.getId(),
-            data: "",
-            id: player.getId()
-        };
-
-        // Only add player if it's not already in this game
-        DBPlayer.findOne({
-            attributes: ["id", "data", "gameid"],
-            where: playerData
-        }).then((result) => {
-            if (!result || result.length == 0) {
-                DBPlayer.create(playerData);
-            }
-        }).catch((err) => {
-            console.log("Failed to find gameplayer", err);
-        });
-        
-        return this;
-    }
-
-    setPlayerSide(player, side) {
-        this._players[player.getId()].side = side;
-    }
-
-    getPlayerSide(player) {
-        return this._players[player.getId()].side;
+        return gameplayer;
     }
 
     /**
@@ -77,6 +71,19 @@ class Game extends DBObject {
 
     /**
      * 
+     * @param {GameType} gametype 
+     */
+    setGametype(gametype) {
+        this._gametype = gametype;
+        return this;
+    }
+
+    getGametype() {
+        return this._gametype;
+    }
+
+    /**
+     * 
      * @param {String} type 
      * @returns {Object}
      */
@@ -100,6 +107,7 @@ class Game extends DBObject {
      * @returns {Game}
      */
     setBoardstate(boardstate) {
+        // console.trace("Setting boardstate", boardstate);
         this._boardstate = boardstate;
         return this;
     }
@@ -114,12 +122,7 @@ class Game extends DBObject {
     }
 
     initiateBoardstate() {
-        const boardstate = this.getRepo().fetchClass(this.getBoardstateClass());
-
-        if (!boardstate) {
-            console.log("Boardstateclass", boardstate, this.getBoardstateClass());
-            return null;
-        }
+        const boardstate = this.getRepo().fetchClass(this.getBoardstateClass()).constructor.create();
 
         boardstate.initiate();
 
@@ -127,9 +130,10 @@ class Game extends DBObject {
     }
 
     async loadDefaultBoardstate() {
-        const gameType = await GameType.getByName(this.getType());
+        const GameType = require("./GameType");
+        const gametype = await GameType.loadByName(this.getType());
 
-        const defaultBoardstateId = gameType.getDefaultBoardstateId();
+        const defaultBoardstateId = gametype.getDefaultBoardstateId();
 
         let boardstate = {};
 
@@ -137,7 +141,8 @@ class Game extends DBObject {
             boardstate = this.initiateBoardstate();
         }
         else {
-            boardstate = await BoardState.load(defaultBoardstateId);
+            const Boardstate = require("./Boardstate");
+            boardstate = await Boardstate.load(defaultBoardstateId);
         }
 
         return boardstate;
@@ -192,60 +197,85 @@ class Game extends DBObject {
     }
 
     checkIfWon() {
-        throw new Error("Implement this function(" + arguments.callee.name + ") in " + this.constructor.name + ".");
+        return this.getStatus() === GAME_STATUS.WON;
+    }
+
+    setWinner(winner) {
+        this._winner = winner;
+        return this;
     }
 
     getWinner() {
-        throw new Error("Implement this function(" + arguments.callee.name + ") in " + this.constructor.name + ".");
+        return this._winner;
     }
 
-    static getGameType(id) {
+    hasWinner() {
+        return this._winner != null;
+    }
+
+    handleMove(move) {
+        throw new Error("Can not handle move on generic Game class");
+    }
+
+    static async load(id) {
+        let dbData = {};
         try {
-            return DBGameType.findOne({
-                attribute: ['type_id'],
+            dbData = await this._dbObjectBase.findOne({
+                attributes: ['id', 'boardstateId', 'gametypeId'],
                 where: {
                     id: id
                 }
             });
         }
-        catch (error) {
-            console.log("Error", error);
-
+        catch (err) {
+            console.log("Error", err);
             return null;
         }
-    }
 
-    static async load(id) {
-        const output = await DBGame.findOne({
-            attributes: ['id', 'data'],
-            where: {
-                id: id
+        let game = {};
+
+        if (dbData) {
+            const GameType = require("./GameType");
+            const gametype = await GameType.loadById(dbData.gametypeId);
+
+            const boardstateClass = ClassRepository.fetchClass(gametype.getBoardstateClass());
+    
+            const boardstate = await boardstateClass.constructor.load(dbData.boardstateId);
+    
+            game = await ClassRepository.fetchClass(gametype.getGameClassname()).constructor.create();
+
+            if (!game) {
+                console.trace("No game found for", this.name, id);
             }
-        });
 
-        const boardstateClass = this.getRepo().fetchClass(this.getBoardstateClass());
+            if (boardstate) {
+                game.setBoardstate(boardstate);
+            }
 
-        console.log("LOAD: Board state class", boardstateClass, this.getBoardstateClass());
-
-        const boardstate = boardstateClass.load(output.boardstate_id);
-
-        let game = new $(this.constructor.name)();
-        game.setBoardstate(boardstate);
+            if(gametype) {
+                game.setGametype(gametype);
+            }
+        }
+        else {
+            return null;
+        }
 
         return game;
     }
 
-    static load(id) {
-        throw new Error("Implement this function in " + this.constructor.name + ". Unable to load Boardstate with ID " + id);
-    }
+    /**
+     * 
+     * @param {any} gameTypeId 
+     * @returns {Game}
+     */
+    static async create(gameTypeId) {
+        const game = super.create();
 
-    static create(gameTypeId) {
-        const gameType = GameType.load(gameTypeId);
+        await game.fixGametype();
 
-        const game = new Game();
-
-        game.setType(gameType.getId());
-        game.setBoardstateClass(gameType.getBoardstateClass());
+        const gametype = await game.getGametype();
+        
+        game.setBoardstateClass(gametype.getBoardstateClass());
 
         game.save();
 
@@ -253,6 +283,16 @@ class Game extends DBObject {
     }
 
     async save() {
+        // console.trace("Saving game", this);
+        this._dbObject.gametypeId = this._gametype.getId();
+
+        const boardstate = this.getBoardstate();
+
+        if (boardstate && boardstate._id) {
+            await boardstate.save();
+            this._dbObject.boardstateId = boardstate.getId();
+        }
+        
         super.save();
     }
 }

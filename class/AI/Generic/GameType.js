@@ -1,21 +1,14 @@
 const { DBGameType } = require("../../../mysql/tables");
+const DBObject = require("./DB/DBObject");
 
-class GameType {
+class GameType extends DBObject {
+    static _dbObjectBase = DBGameType;
     constructor() {
-        this._id = null;
+        super();
         this._name = null;
-        this._className = null;
+        this._gameclassname = null;
         this._boardstateClass = null;
         this._defaultBoardstateId = 0;
-    }
-
-    getId() {
-        return this._id;
-    }
-
-    setId(id) {
-        this._id = id;
-        return this;
     }
 
     getName() {
@@ -27,12 +20,12 @@ class GameType {
         return this;
     }
 
-    getClassName() {
-        return this._className;
+    getGameClassname() {
+        return this._gameclassname;
     }
 
-    setClassName(className) {
-        this._className = className
+    setGameClassname(className) {
+        this._gameclassname = className;
         return this;
     }
 
@@ -60,30 +53,34 @@ class GameType {
      * @returns {GameType}
      */
     static async load(attr) {
-        let output = await DBGameType.findAll({
-            attributes: ['id', 'name', 'class'],
+        let dbData = await this._dbObjectBase.findOne({
+            attributes: ['id', 'name', 'class', 'boardstateclass'],
             where: attr
         });
-
-        if (output.length > 0) {
-            output = output.pop();
+        
+        if (!dbData) {
+            console.log("Could not load gametype with attr", attr);
+            return null;
         }
 
-        let obj = new GameType();
+        // console.log("Loaded gametype with attr", attr);
 
-        obj.setId(output.id)
-        .setName(output.name)
-        .setClassName(output.class);
+        let obj = this.create();
+
+        obj.setId(dbData.id)
+            .setName(dbData.name)
+            .setGameClassname(dbData.class)
+            .setBoardstateClass(dbData.boardstateclass);
 
         return obj;
     }
 
-    static getById(id) {
-        return this.load({ id: id });
+    static async loadById(id) {
+        return await this.load({ id: id });
     }
 
-    static getByName(gametype) {
-        return this.load({ name: gametype });
+    static async loadByName(name) {
+        return await this.load({ name: name });
     }
 }
 

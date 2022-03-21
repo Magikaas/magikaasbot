@@ -35,7 +35,7 @@ class TicTacToeAI extends AI {
     }
 
     async update() {
-        if (!this.getGameId()) {
+        if (!this.getGame()) {
             return;
         }
 
@@ -43,7 +43,7 @@ class TicTacToeAI extends AI {
             return;
         }
 
-        console.log("Update " + this.constructor.name, this.getId());
+        // console.log("Update " + this.constructor.name, this.getId());
 
         const availableMoves = await this.getAvailableMoves();
 
@@ -55,7 +55,7 @@ class TicTacToeAI extends AI {
 
         const moveObject = {
             square: pickedMove,
-            game: this.getGameId(),
+            game: this.getGame().getId(),
             player: this
         };
 
@@ -69,10 +69,6 @@ class TicTacToeAI extends AI {
     async getAvailableMoves() {
         const boardstate = await this.getBoardstate();
         return boardstate.getAvailableMoves();
-    }
-
-    async save() {
-
     }
 }
 

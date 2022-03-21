@@ -28,7 +28,7 @@ function prepDatabase() {
     let where = {};
     for (let t in Tables) {
         table = Tables[t];
-        table.sync({ alter: true, force: true }).then((tableObject) => {
+        table.sync().then((tableObject) => {
             importFile = "./data/" + tableObject.name + ".json";
             if (!fs.existsSync(importFile)) {
                 return;
@@ -55,7 +55,7 @@ function prepDatabase() {
         });
     }
 }
-
+// Only prep database for changes
 console.log("Preparing Database");
 prepDatabase();
 
@@ -126,6 +126,10 @@ function guaranteeFile(file) {
 }
 
 const roleManager = new RoleManager();
+
+if (!config["magikaasbot"][botEnv.version]) {
+    throw new Error("Unable to find configuration for Magikaasbot", botEnv.version, "environment");
+}
 
 config = config["magikaasbot"][botEnv.version];
 const prefix = config.prefix;

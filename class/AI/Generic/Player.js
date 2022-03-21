@@ -1,19 +1,27 @@
+const { DBPlayer } = require("../../../mysql/tables");
+const ClassRepository = require("../ClassRepository");
 const DBObject = require("./DB/DBObject");
 
 class Player extends DBObject {
+    static _dbObjectBase = DBPlayer;
     constructor() {
         super();
-        this._gameId = null;
+        this._game = null;
         this._side = null;
+        this._data = {};
     }
 
-    setGame(gameId) {
-        this._gameId = gameId;
+    setGame(game) {
+        this._game = game;
         return this;
     }
 
-    getGameId() {
-        return this._gameId;
+    /**
+     * 
+     * @returns {Game}
+     */
+    getGame() {
+        return this._game;
     }
 
     setSide(side) {
@@ -25,22 +33,40 @@ class Player extends DBObject {
         return this._side;
     }
 
+    setData(data) {
+        this._data = data;
+        return this;
+    }
+
+    getData() {
+        return this._data;
+    }
+
     /**
      * Load this AI's data from the database
      * 
      * @param {any} id 
-     * @returns {Obj}
+     * @returns {Player}
      */
     static async load(id) {
-        const data = await Tables.DBPlayer.findOne({
+        const dbData = await this._dbObjectBase.findOne({
             attributes: ['id', 'data'],
-            where: {'id': id},
-            include: Tables.DBGame
+            where: {'id': id}
         });
 
-        console.log("Loading Player", data);
+        let player = {};
+
+        if (dbData) {
+            player = this.create();
+    
+            player.setId(id);
+            player.setData(dbData.data);
+        }
+        else {
+            return null;
+        }
         
-        return data;
+        return player;
     }
 }
 
