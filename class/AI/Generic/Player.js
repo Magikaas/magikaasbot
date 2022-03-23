@@ -49,18 +49,19 @@ class Player extends DBObject {
      * @returns {Player}
      */
     static async load(id) {
-        const dbData = await this._dbObjectBase.findOne({
+        const [dbModel, created] = await this._dbObjectBase.findOrBuild({
             attributes: ['id', 'data'],
             where: {'id': id}
         });
 
         let player = {};
 
-        if (dbData) {
+        if (!created) {
             player = this.create();
+            player._dbObject = dbModel;
     
             player.setId(id);
-            player.setData(dbData.data);
+            player.setData(dbModel.data);
         }
         else {
             return null;

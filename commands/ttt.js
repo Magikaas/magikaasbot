@@ -16,7 +16,7 @@ module.exports = {
         const move = {
             square: square,
             game: game.getId(),
-            player: player
+            player: player.getId()
         };
 
         manager.submitMove(move);

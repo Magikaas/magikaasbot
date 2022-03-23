@@ -18,15 +18,6 @@ class Boardstate extends DBObject {
         return this._weightedMoves;
     }
 
-    setMoveWeights(moveWeights) {
-        this._data.moveWeights = moveWeights;
-        return this;
-    }
-
-    getMoveWeights() {
-        return this._data.moveWeights;
-    }
-
     initiate() {
         throw new Error("Implement this function in " + this.constructor.name + ". Can't initiate generic boardstate");
     }
@@ -37,29 +28,26 @@ class Boardstate extends DBObject {
      * @returns {Boardstate}
      */
     static async load(id) {
-        const output = await this._dbObjectBase.findOne({
+        const [dbModel, created] = await this._dbObjectBase.findOrBuild({
             attributes: ['id', 'hash', 'data', 'gametypeId'],
             where: {
                 id: id
             }
         });
 
-        if (!output) {
+        if (created) {
             return null;
         }
+
+        // We run create to make sure the correct instance is generated
+        const boardstate = this.create();
+        boardstate._dbObject = dbModel;
         
-        return output;
+        return boardstate;
     }
 
     async save() {
-        console.log("Saving boardstate with id", this._dbObject.id);
-
-        this._dbObject.hash = this.hash(this._dbObject.data);
-        this._dbObject.data = JSON.stringify(this._dbObject.data);
-
-        super.save();
-
-        console.log("Saved boardstate with hash", this._dbObject.hash, "with id", this.getId());
+        await super.save();
     }
 }
 

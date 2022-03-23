@@ -28,13 +28,13 @@ class AI extends Player {
      *   List of items, with a weight value to determine frequency.
      * @returns {Object}
      */
-    pickRandomWeightedMove(list) {
-        const randomRoll = Math.floor(Math.random() * this.getTotalWeight(list)) + 1;
+    pickRandomWeightedMove(list, side) {
+        const randomRoll = Math.floor(Math.random() * this.getTotalWeight(list, side)) + 1;
 
         let weight = 0;
         // Loop through items, adding weights until its above the random roll and pick that item
         for (let i in list) {
-            weight += list[i];
+            weight += list[i][side];
 
             if (weight > randomRoll) {
                 return i;
@@ -50,11 +50,11 @@ class AI extends Player {
      * @returns {any}
      *   Total weight of list.
      */
-    getTotalWeight(list) {
+    getTotalWeight(list, side) {
         let weight = 0;
 
         for (let i in list) {
-            weight += list[i];
+            weight += list[i][side];
         }
 
         return weight;

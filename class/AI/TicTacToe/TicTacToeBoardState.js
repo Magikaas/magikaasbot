@@ -5,10 +5,7 @@ class TicTacToeBoardstate extends Boardstate {
         super();
 
         this._squares = {};
-    }
-
-    getSquare(x, y) {
-        return this.getSquares()[x][y];
+        this._sides = {};
     }
 
     setSquare(square, side) {
@@ -19,8 +16,26 @@ class TicTacToeBoardstate extends Boardstate {
         this.determineAvailableMoves();
     }
 
+    getSquare(x, y) {
+        return this.getSquares()[x][y];
+    }
+
+    setSquares(squares) {
+        this._squares = squares;
+        return this;
+    }
+
     getSquares() {
         return this._squares;
+    }
+
+    setSides(sides) {
+        this._sides = sides;
+        return this;
+    }
+
+    getSides() {
+        return this._sides;
     }
 
     isBoardFull() {
@@ -47,7 +62,11 @@ class TicTacToeBoardstate extends Boardstate {
         for (let x = 0; x < Object.keys(squares).length; x++) {
             for (let y = 0; y < Object.keys(squares[x]).length; y++) {
                 if (squares[x][y] == EMPTY_SQUARE) {
-                    moves[x + ',' + y] = 5;
+                    let sideMoves = {};
+                    for (let side of Object.values(this.getSides())) {
+                        sideMoves[side] = 5;
+                    }
+                    moves[x + ',' + y] = sideMoves;
                 }
             }
         }
@@ -73,6 +92,21 @@ class TicTacToeBoardstate extends Boardstate {
         this.determineAvailableMoves();
     }
 
+    async exists() {
+        const dbData = await Boardstate._dbObjectBase.findOne({
+            attributes: ['id', 'hash', 'data', 'gametypeId'],
+            where: {
+                hash: this.getHash()
+            }
+        });
+
+        return !!dbData;
+    }
+
+    getHash() {
+        return this.hash(this.getSquares());
+    }
+
     /**
      * 
      * @param {Integer} id 
@@ -85,9 +119,8 @@ class TicTacToeBoardstate extends Boardstate {
             return null;
         }
 
-        console.log("TictactoeBoardstate loaded by id", id, boardstate);
-
         boardstate.setSquares(boardstate.getDBObject().data.squares);
+        boardstate.setAvailableMoves(boardstate.getDBObject().data.moves);
 
         return boardstate;
     }
@@ -95,16 +128,28 @@ class TicTacToeBoardstate extends Boardstate {
     async save() {
         this._dbObject.hash = this.hash(this.getSquares());
         this._dbObject.data = JSON.stringify({
-            squares: this.getSquares()
+            squares: this.getSquares(),
+            moves: this.getAvailableMoves()
         });
 
-        super.save();
+        const alreadyExists = await this.exists();
+
+        if (!alreadyExists) {
+            // Duplicate data, create new record by removing id
+            let dataValues = JSON.parse(JSON.stringify(this._dbObject.dataValues));
+            delete dataValues.id;
+            this._dbObject = this.constructor._dbObjectBase.build(dataValues);
+
+            await super.save();
+        } else {
+            // Do not save this existing object.
+        }
     }
 
     consolePrint() {
         const squares = this.getSquares();
 
-        console.log("Board");
+        // console.log("Board");
         console.log("=============");
         let line = {};
         for (let l in squares) {

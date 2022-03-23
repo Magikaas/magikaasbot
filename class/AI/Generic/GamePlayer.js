@@ -6,8 +6,8 @@ class GamePlayer extends DBObject {
     static _dbObjectBase = DBGamePlayer;
     constructor() {
         super();
-        this._game = {};
-        this._player = {};
+        this._game = null;
+        this._player = null;
         this._side = null;
     }
 
@@ -16,7 +16,6 @@ class GamePlayer extends DBObject {
      * @returns {GamePlayer}
      */
     setSide(side) {
-        console.trace("Set side", side, "for gameplayer", this.getPlayer().getId());
         this._side = side;
         return this;
     }
@@ -69,20 +68,19 @@ class GamePlayer extends DBObject {
      * @returns {GamePlayer}
      */
     static async load(id) {
-        const data = await this._dbObjectBase.findOne({
+        const [dbModel, created] = await this._dbObjectBase.findOrBuild({
             attributes: ['id', 'gameId', 'playerId'],
             where: {
                 id: id
             }
         });
 
-        if (!data) {
+        if (created) {
             return null;
         }
-
-        const className = this.name;
     
-        let gameplayer = ClassRepository.fetchClass(className);
+        let gameplayer = this.create();
+        gameplayer._dbObject = dbModel;
 
         gameplayer.setSide(data.side);
 
@@ -96,31 +94,24 @@ class GamePlayer extends DBObject {
      * @returns {GamePlayer}
      */
     static async loadByData(game, player) {
-        let dbData = null;
-        try {
-            dbData = await this._dbObjectBase.findOne({
-                attributes: ['id', 'side', 'gameId', 'playerId'],
-                where: {
-                    gameId: game.getId(),
-                    playerId: player.getId()
-                }
-            });
-        }
-        catch(err) {
-            console.log("Error while loading gameplayer by data", [game, player], err);
-        }
+        const [dbModel, created] = await this._dbObjectBase.findOrBuild({
+            attributes: ['id', 'side', 'gameId', 'playerId'],
+            where: {
+                gameId: game.getId(),
+                playerId: player.getId()
+            }
+        });
 
-        if (!dbData) {
+        if (created) {
             return null;
         }
 
         let gameplayer = this.create();
-        
-        gameplayer = this.create();
+        gameplayer._dbObject = dbModel;
 
         gameplayer.setPlayer(player);
         gameplayer.setGame(game);
-        gameplayer.setSide(dbData.side);
+        gameplayer.setSide(dbModel.side);
 
         return gameplayer;
     }
@@ -130,7 +121,7 @@ class GamePlayer extends DBObject {
         this._dbObject.gameId = this.getGame().getId();
         this._dbObject.side = this.getSide();
 
-        super.save();
+        await super.save();
     }
 
     /**

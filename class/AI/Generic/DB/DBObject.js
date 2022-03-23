@@ -6,11 +6,11 @@ class DBObject extends General {
         super();
         this._id = null;
         this._data = {};
-        this._dbObject = {};
-        this._dbObjectBase = {};
+        this._dbObject = null;
     }
 
     setId(id) {
+        this._dbObject.id = id;
         this._id = id;
         return this;
     }
@@ -44,6 +44,7 @@ class DBObject extends General {
     }
 
     async save() {
+        const oldId = this.getId();
         try {
             await this._dbObject.save();
         }
@@ -52,6 +53,7 @@ class DBObject extends General {
         }
         
         this.setId(this._dbObject.id);
+        // console.log("Saved", this.constructor.name, oldId, "to", this.getId());
     }
 
     static create() {
@@ -63,6 +65,7 @@ class DBObject extends General {
             throw new Error("No database object base defined for " + this.name);
         }
 
+        // Backup database object to be overwritten if can be loaded
         object._dbObject = this._dbObjectBase.build();
 
         return object;

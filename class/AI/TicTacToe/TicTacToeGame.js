@@ -1,3 +1,4 @@
+const ClassRepository = require("../ClassRepository");
 const Game = require("../Generic/Game");
 const GameManager = require("../Generic/GameManager");
 
@@ -18,6 +19,30 @@ class TicTacToeGame extends Game {
         manager.registerGame(this.getType(), this.constructor.name);
     }
 
+    async guaranteeStartingBoardstateForGame() {
+        const gametype = this.getGametype();
+
+        if (gametype.getDefaultBoardstateId() !== 0) {
+            return;
+        }
+
+        const boardstateclass = this.getBoardstateClass();
+
+        const boardstate = ClassRepository.fetchClass(boardstateclass).constructor.create();
+
+        boardstate.setSides(this._sides);
+
+        boardstate.initiate();
+
+        await boardstate.save();
+
+        gametype.setDefaultBoardstateId(boardstate.getId());
+
+        await gametype.save();
+
+        this.setGametype(gametype);
+    }
+
     async getPlayerSide(player) {
         const GamePlayer = require("../Generic/GamePlayer");
         const gameplayer = await GamePlayer.loadByData(this, player);
@@ -31,7 +56,7 @@ class TicTacToeGame extends Game {
 
     async handleMove(move) {
         const boardstate = this.getBoardstate();
-        console.log("Handling move", move.square, "game", move.game, "side", move.player.getSide());
+        // console.log("Handling move", move.square, "game", move.game, "side", move.player.getSide());
         
         if (!move.square) {
             console.trace("Unable to handle move, no square set");
@@ -40,10 +65,13 @@ class TicTacToeGame extends Game {
 
         // console.log("Square", move.square, "Move", this.getPlayerSide(move.player));
 
-        const side = await this.getPlayerSide(move.player);
+        const Player = require("../Generic/Player");
+        const player = await Player.load(move.player);
+
+        const side = await this.getPlayerSide(player);
 
         boardstate.setSquare(move.square, side);
-
+        
         await boardstate.save();
 
         this.setBoardstate(boardstate);
@@ -61,7 +89,7 @@ class TicTacToeGame extends Game {
         let gameplayer = await super.addPlayer(player);
         const side = this._sides[Object.keys(this._players).length - 1];
 
-        console.log("Chose side", side, "from", this._sides, "for player", player.getId(), "in", this._players);
+        // console.log("Chose side", side, "from", this._sides, "for player", player.getId(), "in", this._players);
 
         gameplayer.setSide(side);
         player.setSide(side);
@@ -89,25 +117,25 @@ class TicTacToeGame extends Game {
         for (let i of [0,1,2]) {
             //Horizontal
             if (this.isOccupied(i,0) && this.getBoardstate().getSquare(i,0) == this.getBoardstate().getSquare(i,1) && this.getBoardstate().getSquare(i,0) == this.getBoardstate().getSquare(i,2)) {
-                console.log(this.getBoardstate().getSquare(i,0) + " has won!");
+                // console.log(this.getBoardstate().getSquare(i,0) + " has won!");
                 this.setWinner(this.getBoardstate().getSquare(i,0));
             }
 
             //Vertical
             if (this.isOccupied(0,i) && this.getBoardstate().getSquare(0,i) == this.getBoardstate().getSquare(1,i) && this.getBoardstate().getSquare(0,i) == this.getBoardstate().getSquare(2,i)) {
-                console.log(this.getBoardstate().getSquare(0,i) + " has won!");
+                // console.log(this.getBoardstate().getSquare(0,i) + " has won!");
                 this.setWinner(this.getBoardstate().getSquare(0,i));
             }
         }
         //Diagonal to bottomright
         if ((this.isOccupied(0,0) && this.getBoardstate().getSquare(0,0) == this.getBoardstate().getSquare(1,1) && this.getBoardstate().getSquare(0,0) == this.getBoardstate().getSquare(2,2))) {
-            console.log(this.getBoardstate().getSquare(0,0) + " has won!");
+            // console.log(this.getBoardstate().getSquare(0,0) + " has won!");
             this.setWinner(this.getBoardstate().getSquare(0,0));
         }
         
         //Diagonal to topright
         if (this.isOccupied(0,2) && this.getBoardstate().getSquare(0,2) == this.getBoardstate().getSquare(1,1) && this.getBoardstate().getSquare(0,2) == this.getBoardstate().getSquare(2,0)) {
-            console.log(this.getBoardstate().getSquare(0,2) + " has won!");
+            // console.log(this.getBoardstate().getSquare(0,2) + " has won!");
             this.setWinner(this.getBoardstate().getSquare(0,2));
         }
     }

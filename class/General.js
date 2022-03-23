@@ -22,7 +22,7 @@ class General {
     }
 
     hash(value) {
-        const md5sum = crypto.createHash('md5').update(value.toString());
+        const md5sum = crypto.createHash('md5').update(JSON.stringify(value));
         return md5sum.digest('hex');
     }
 

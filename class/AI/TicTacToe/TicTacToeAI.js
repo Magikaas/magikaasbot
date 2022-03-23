@@ -43,27 +43,38 @@ class TicTacToeAI extends AI {
             return;
         }
 
-        // console.log("Update " + this.constructor.name, this.getId());
+        const game = this._manager.getGame(this.getGame().getId());
+
+        if (game.isFinished()) {
+            this.setGame(null);
+            return;
+        }
+
+        // console.log("Update for player", this.getId(), this._dbObject.id);
 
         const availableMoves = await this.getAvailableMoves();
 
-        const pickedMove = this.pickRandomWeightedMove(availableMoves);
+        const pickedMove = this.pickRandomWeightedMove(availableMoves, this.getSide());
 
         if (!pickedMove) {
             return;
         }
 
-        const moveObject = {
-            square: pickedMove,
-            game: this.getGame().getId(),
-            player: this
-        };
+        const moveObject = this.generateMoveObject(pickedMove);
 
         if (moveObject) {
             this._manager.submitMove(moveObject);
         }
 
-        this.save();
+        await this.save();
+    }
+
+    generateMoveObject(move) {
+        return  {
+            square: move,
+            game: this.getGame().getId(),
+            player: this.getId()
+        };
     }
 
     async getAvailableMoves() {

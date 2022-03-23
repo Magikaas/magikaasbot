@@ -18,7 +18,7 @@ module.exports = {
 
             tictactoeAI.setId(123);
 
-            tictactoeAI.save();
+            await tictactoeAI.save();
         }
 
         manager.addPlayerToGame(game, tictactoeAI);
@@ -31,7 +31,7 @@ module.exports = {
 
             otherAI.setId(124);
 
-            otherAI.save();
+            await otherAI.save();
         }
 
         manager.addPlayerToGame(game, otherAI);

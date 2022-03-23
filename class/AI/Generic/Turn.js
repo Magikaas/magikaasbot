@@ -50,8 +50,12 @@ class Turn extends DBObject {
         return this._game;
     }
 
+    changeWeight() {
+
+    }
+
     static async getAllTurns(gameId) {
-        const dbData = this._dbObjectBase.findAll({
+        const dbData = await this._dbObjectBase.findAll({
             attributes: ['id', 'sequence', 'moveId', 'boardstateId', 'gameId'],
             where: {
                 gameId: gameId
@@ -65,9 +69,9 @@ class Turn extends DBObject {
             turn = Turn.create();
 
             turn.setSequence(data.sequence)
-                .setBoardstate(Boardstate.load(data.boardstateId))
-                .setMove(Move.load(data.moveId))
-                .setGame(Game.load(data.gameId));
+                .setBoardstate(await Boardstate.load(data.boardstateId))
+                .setMove(await Move.load(data.moveId))
+                .setGame(await Game.load(data.gameId));
             
             turns.push(turn);
         }
@@ -76,20 +80,30 @@ class Turn extends DBObject {
     }
 
     static async load(id) {
-        const dbData = this._dbObjectBase.findOne({
+        const [dbModel, created] = this._dbObjectBase.findOrBuild({
             attributes: ['id', 'sequence', 'moveId', 'boardstateId', 'gameId'],
             where: {
                 id: id
             }
         });
 
-        if (!dbData) {
+        if (created) {
             return null;
         }
 
         let turn = this.create();
+        turn._dbObject = dbModel;
 
         return turn;
+    }
+
+    async save() {
+        // console.trace("Saving game", this);
+        this._dbObject.moveId = this._move.getId();
+        this._dbObject.boardstateId = this._boardstate.getId();
+        this._dbObject.gameId = this._game.getId();
+        
+        await super.save();
     }
 }
 

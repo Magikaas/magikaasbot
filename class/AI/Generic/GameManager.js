@@ -71,7 +71,14 @@ class GameManager extends General {
         let wonGame = null;
 
         if (wonGame = this.getFirstUnfinishedWonGame()) {
-            
+            console.log("Game", wonGame.getId(), "is over.", wonGame.getWinner(), "is the winner");
+            // wonGame.getBoardstate().consolePrint();
+            wonGame.finish();
+            const Turn = require("./Turn");
+
+            Turn.getAllTurns(wonGame.getId());
+
+
         }
 
         if (moves.length == 0) {
@@ -93,7 +100,6 @@ class GameManager extends General {
 
         for (let g of Object.entries(games).filter(([k, g]) => !g.isFinished())) {
             game = g[1];
-            game.checkIfWon();
 
             if (game.hasWinner()) {
                 return game;
@@ -107,18 +113,33 @@ class GameManager extends General {
         return this.getGame(gameId).getCurrentTurnPlayer().getId();
     }
 
-    async handleMove(move) {
-        const game = await this.getGame(move.game);
+    async handleMove(moveData) {
+        const Move = require("./Move");
+        const Turn = require("./Turn");
+        const game = this.getGame(moveData.game);
 
-        await game.handleMove(move);
+        await game.handleMove(moveData);
 
-        game.save();
+        await game.save();
+
+        let move = Move.create();
+
+        move.setData(moveData);
+
+        await move.save();
+
+        const turn = Turn.create();
+        turn.setGame(game)
+            .setBoardstate(game.getBoardstate())
+            .setMove(move);
+        
+        turn.save();
 
         this.updateGame(game);
     }
 
     async cycleTurn(move) {
-        let game = await this.getGame(move.game);
+        let game = this.getGame(move.game);
         const curTurn = game.getCurrentTurnPlayer();
 
         if (!curTurn) {
@@ -162,13 +183,18 @@ class GameManager extends General {
      * @param {Player} player 
      * @returns {Boolean}
      */
-    async checkIsTurn(game, player) {
+    checkIsTurn(game, player) {
         if (!game) {
             console.trace("Checking turn for non-existent game");
             return false;
         }
 
         const currentTurn = game.getCurrentTurnPlayer();
+
+        // Game has not had a first turn selected, so it is not my turn
+        if (!currentTurn) {
+            return false;
+        }
 
         return currentTurn.getId() == player.getId();
     }
@@ -200,10 +226,7 @@ class GameManager extends General {
      * @returns {Game}
      */
     async initiateGame(gameName) {
-        const gameClassName = this.getGameClass(gameName);
-
-        const repo = ClassRepository;
-        const game = await repo.fetchClass(gameClassName).constructor.create();
+        const game = await ClassRepository.fetchClass(this.getGameClass(gameName)).constructor.create();
 
         const boardstate = await game.loadDefaultBoardstate();
         
@@ -238,7 +261,7 @@ class GameManager extends General {
      * @param {any} gameId 
      * @returns {Game}
      */
-    async getGame(gameId, force = false) {
+    getGame(gameId, force = false) {
         if (this._games[gameId]) {
             return this._games[gameId];
         }

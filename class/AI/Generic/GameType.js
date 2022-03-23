@@ -53,26 +53,32 @@ class GameType extends DBObject {
      * @returns {GameType}
      */
     static async load(attr) {
-        let dbData = await this._dbObjectBase.findOne({
-            attributes: ['id', 'name', 'class', 'boardstateclass'],
+        const [dbModel, created] = await this._dbObjectBase.findOrBuild({
+            attributes: ['id', 'name', 'class', 'boardstateclass', 'boardstateId'],
             where: attr
         });
         
-        if (!dbData) {
-            console.log("Could not load gametype with attr", attr);
+        if (created) {
             return null;
         }
 
-        // console.log("Loaded gametype with attr", attr);
+        let gametype = this.create();
+        
+        gametype._dbObject = dbModel;
 
-        let obj = this.create();
+        gametype.setId(dbModel.id)
+            .setName(dbModel.name)
+            .setGameClassname(dbModel.class)
+            .setBoardstateClass(dbModel.boardstateclass)
+            .setDefaultBoardstateId(dbModel.boardstateId);
 
-        obj.setId(dbData.id)
-            .setName(dbData.name)
-            .setGameClassname(dbData.class)
-            .setBoardstateClass(dbData.boardstateclass);
+        return gametype;
+    }
 
-        return obj;
+    async save() {
+        this._dbObject.boardstateId = this.getDefaultBoardstateId();
+
+        super.save();
     }
 
     static async loadById(id) {
