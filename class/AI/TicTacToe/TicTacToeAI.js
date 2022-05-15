@@ -73,7 +73,7 @@ class TicTacToeAI extends AI {
         return  {
             square: move,
             game: this.getGame().getId(),
-            player: this.getId()
+            side: this.getSide()
         };
     }
 

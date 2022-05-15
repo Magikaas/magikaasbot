@@ -127,11 +127,11 @@ function guaranteeFile(file) {
 
 const roleManager = new RoleManager();
 
-if (!config["magikaasbot"][botEnv.version]) {
+if (!config.magikaasbot[botEnv.version]) {
     throw new Error("Unable to find configuration for Magikaasbot", botEnv.version, "environment");
 }
 
-config = config["magikaasbot"][botEnv.version];
+config = config.magikaasbot[botEnv.version];
 const prefix = config.prefix;
 
 client.prefix = config.prefix;
@@ -217,7 +217,7 @@ client.on("voiceStateUpdate", voiceState => {
     }
 
     if (!client.voice.connections.find(connection => connection) ||
-        !voiceState.channelID === client.voice.connections.find(connection => connection).channel) {
+        voiceState.channelID !== client.voice.connections.find(connection => connection).channel) {
         return;
     }
 

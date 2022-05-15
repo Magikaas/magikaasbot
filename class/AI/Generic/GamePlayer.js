@@ -1,5 +1,4 @@
 const { DBGamePlayer } = require("../../../mysql/tables");
-const ClassRepository = require("../ClassRepository");
 const DBObject = require("./DB/DBObject");
 
 class GamePlayer extends DBObject {
@@ -26,44 +25,6 @@ class GamePlayer extends DBObject {
 
     /**
      * 
-     * @param {Player} player 
-     * @returns {GamePlayer}
-     */
-    setPlayer(player) {
-        this._dbObject.playerId = player.getId();
-        this._player = player;
-        return this;
-    }
-
-    /**
-     * 
-     * @returns {Player}
-     */
-    getPlayer() {
-        return this._player;
-    }
-
-    /**
-     * 
-     * @param {Game} game 
-     * @returns {GamePlayer}
-     */
-    setGame(game) {
-        this._dbObject.gameId = game.getId();
-        this._game = game;
-        return this;
-    }
-
-    /**
-     * 
-     * @returns {Game}
-     */
-    getGame() {
-        return this._game;
-    }
-
-    /**
-     * 
      * @param {Integer} id 
      * @returns {GamePlayer}
      */
@@ -79,10 +40,11 @@ class GamePlayer extends DBObject {
             return null;
         }
     
-        let gameplayer = this.create();
+        let gameplayer = this.constructor.build();
         gameplayer._dbObject = dbModel;
 
         gameplayer.setSide(data.side);
+        gameplayer.setId(id);
 
         return gameplayer;
     }
@@ -106,7 +68,7 @@ class GamePlayer extends DBObject {
             return null;
         }
 
-        let gameplayer = this.create();
+        let gameplayer = this.build();
         gameplayer._dbObject = dbModel;
 
         gameplayer.setPlayer(player);
@@ -129,8 +91,8 @@ class GamePlayer extends DBObject {
      * @param {Object} data 
      * @returns {GamePlayer}
      */
-    static create() {
-        let gameplayer = super.create();
+    static build() {
+        let gameplayer = super.build();
 
         return gameplayer;
     }

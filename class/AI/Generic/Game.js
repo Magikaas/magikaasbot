@@ -14,13 +14,23 @@ class Game extends DBObject {
         this._boardstateClass = "";
         this._currentTurnPlayer = null;
         this._status = GAME_STATUS.NEW;
-        this._winner = null;
+        this._data = {};
+        this._objectType = "generic";
     }
 
     async fixGametype() {
         const GameType = require("./GameType");
         const gametype = await GameType.loadByName(this.getType());
         this.setGametype(gametype);
+    }
+
+    setStatus(status) {
+        this._status = status;
+        return this;
+    }
+
+    getStatus() {
+        return this._status;
     }
 
     /**
@@ -36,7 +46,7 @@ class Game extends DBObject {
         let gameplayer = await GamePlayer.loadByData(this, player);
 
         if (!gameplayer) {
-            gameplayer = GamePlayer.create();
+            gameplayer = GamePlayer.build();
             gameplayer.setPlayer(player);
             gameplayer.setGame(this);
         }
@@ -56,15 +66,6 @@ class Game extends DBObject {
         return this;
     }
 
-    /**
-     * 
-     * @param Integer id 
-     * @returns {Player}
-     */
-    getPlayer(id) {
-        return this._players[id];
-    }
-
     getPlayers() {
         return this._players;
     }
@@ -80,6 +81,15 @@ class Game extends DBObject {
 
     getGametype() {
         return this._gametype;
+    }
+
+    setData(data) {
+        this._data = data;
+        return this;
+    }
+
+    getData() {
+        return this._data;
     }
 
     /**
@@ -122,7 +132,7 @@ class Game extends DBObject {
     }
 
     initiateBoardstate() {
-        const boardstate = this.getRepo().fetchClass(this.getBoardstateClass()).constructor.create();
+        const boardstate = this.getRepo().fetchClass(this.getBoardstateClass()).constructor.build();
 
         boardstate.setSides(this._sides);
 
@@ -201,21 +211,25 @@ class Game extends DBObject {
         this._currentTurnPlayer = player;
     }
 
+    hasStarted() {
+        return this.getStatus() === GAME_STATUS.STARTED;
+    }
+
     checkIfWon() {
         return this.getStatus() === GAME_STATUS.WON;
     }
 
     setWinner(winner) {
-        this._winner = winner;
+        this._data.winner = winner;
         return this;
     }
 
     getWinner() {
-        return this._winner;
+        return this._data.winner;
     }
 
     hasWinner() {
-        return this._winner != null;
+        return this._data.winner != null;
     }
 
     handleMove(move) {
@@ -223,8 +237,8 @@ class Game extends DBObject {
     }
 
     static async load(id) {
-        const [dbData, created] = await this._dbObjectBase.findOrBuild({
-            attributes: ['id', 'boardstateId', 'gametypeId'],
+        const [dbModel, created] = await this._dbObjectBase.findOrBuild({
+            attributes: ['id', 'data', 'boardstateId', 'gametypeId'],
             where: {
                 id: id
             }
@@ -237,18 +251,18 @@ class Game extends DBObject {
         }
         
         const GameType = require("./GameType");
-        const gametype = await GameType.loadById(dbData.gametypeId);
+        const gametype = await GameType.loadById(dbModel.gametypeId);
 
         const boardstateClass = ClassRepository.fetchClass(gametype.getBoardstateClass());
 
-        const boardstate = await boardstateClass.constructor.load(dbData.boardstateId);
+        const boardstate = await boardstateClass.constructor.load(dbModel.boardstateId);
 
-        game = await ClassRepository.fetchClass(gametype.getGameClassname()).constructor.create();
+        game = await ClassRepository.fetchClass(gametype.getGameClassname()).constructor.build();
 
         if (!game) {
             console.trace("No game found for", this.name, id);
         }
-        
+
         game.setId(id);
         game._dbObject.isNewRecord = false;
 
@@ -260,6 +274,8 @@ class Game extends DBObject {
             game.setGametype(gametype);
         }
 
+        game.setData(JSON.parse(dbModel.data));
+
         return game;
     }
 
@@ -268,8 +284,8 @@ class Game extends DBObject {
      * @param {any} gameTypeId 
      * @returns {Game}
      */
-    static async create() {
-        const game = super.create();
+    static async build() {
+        const game = super.build();
 
         await game.fixGametype();
 
@@ -284,6 +300,7 @@ class Game extends DBObject {
         const oldId = this.getId();
         // console.trace("Saving game", this);
         this._dbObject.gametypeId = this._gametype.getId();
+        this._dbObject.data = JSON.stringify(this.getData());
 
         const boardstate = this.getBoardstate();
 

@@ -1,3 +1,4 @@
+const { DBTurn } = require("../../../mysql/tables");
 const ClassRepository = require("../ClassRepository");
 const Game = require("../Generic/Game");
 const GameManager = require("../Generic/GameManager");
@@ -14,6 +15,8 @@ class TicTacToeGame extends Game {
 
         this.setType("tictactoe");
         this.setBoardstateClass("TicTacToeBoardstate");
+        
+        this._objectType = "TicTacToeGame";
         const manager = GameManager;
 
         manager.registerGame(this.getType(), this.constructor.name);
@@ -28,7 +31,7 @@ class TicTacToeGame extends Game {
 
         const boardstateclass = this.getBoardstateClass();
 
-        const boardstate = ClassRepository.fetchClass(boardstateclass).constructor.create();
+        const boardstate = ClassRepository.fetchClass(boardstateclass).constructor.build();
 
         boardstate.setSides(this._sides);
 
@@ -56,7 +59,6 @@ class TicTacToeGame extends Game {
 
     async handleMove(move) {
         const boardstate = this.getBoardstate();
-        // console.log("Handling move", move.square, "game", move.game, "side", move.player.getSide());
         
         if (!move.square) {
             console.trace("Unable to handle move, no square set");
@@ -65,12 +67,7 @@ class TicTacToeGame extends Game {
 
         // console.log("Square", move.square, "Move", this.getPlayerSide(move.player));
 
-        const Player = require("../Generic/Player");
-        const player = await Player.load(move.player);
-
-        const side = await this.getPlayerSide(player);
-
-        boardstate.setSquare(move.square, side);
+        boardstate.setSquare(move.square, move.side);
         
         await boardstate.save();
 
@@ -79,6 +76,39 @@ class TicTacToeGame extends Game {
         this.checkIfWon();
 
         // this.getBoardstate().consolePrint();
+    }
+    
+    async getAllTurns() {
+        const dbData = await DBTurn.findAll({
+            attributes: ['id', 'sequence', 'moveId', 'boardstateId', 'gameId'],
+            where: {
+                gameId: this.getId()
+            }
+        });
+
+        let turns = [];
+        let turn = {};
+
+        for (let data of dbData) {
+            const TicTacToeTurn = require("./TicTacToeTurn");
+            turn = TicTacToeTurn.build();
+
+            turn.setId(data.id);
+
+            const Boardstate = require("../Generic/Boardstate");
+            const Move = require("../Generic/Move");
+
+            const boardstate = await Boardstate.load(data.boardstateId);
+
+            turn.setSequence(data.sequence)
+                .setBoardstate(boardstate)
+                .setMove(await Move.load(data.moveId))
+                .setGame(await Game.load(data.gameId));
+            
+            turns.push(turn);
+        }
+
+        return turns;
     }
 
     async addPlayer(player) {
@@ -92,7 +122,6 @@ class TicTacToeGame extends Game {
         // console.log("Chose side", side, "from", this._sides, "for player", player.getId(), "in", this._players);
 
         gameplayer.setSide(side);
-        player.setSide(side);
 
         await gameplayer.save();
 
@@ -150,6 +179,11 @@ class TicTacToeGame extends Game {
 
     isFinished() {
         return this._finished;
+    }
+
+    buildTurn() {
+        const TicTacToeTurn = require("./TicTacToeTurn");
+        return TicTacToeTurn.build();
     }
 }
 

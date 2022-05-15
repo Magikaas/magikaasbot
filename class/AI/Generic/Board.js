@@ -5,6 +5,7 @@ class Board extends DBObject {
     constructor() {
         super();
         this._currentBoardstate = {};
+        this._objectType = "generic";
     }
 
     /**

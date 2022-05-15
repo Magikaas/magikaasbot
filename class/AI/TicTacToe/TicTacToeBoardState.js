@@ -6,6 +6,8 @@ class TicTacToeBoardstate extends Boardstate {
 
         this._squares = {};
         this._sides = {};
+        
+        this._objectType = "TicTacToeBoardstate";
     }
 
     setSquare(square, side) {
@@ -100,6 +102,10 @@ class TicTacToeBoardstate extends Boardstate {
             }
         });
 
+        if (dbData !== null && !this._id) {
+            this.setId(dbData.id);
+        }
+
         return !!dbData;
     }
 
@@ -119,8 +125,8 @@ class TicTacToeBoardstate extends Boardstate {
             return null;
         }
 
-        boardstate.setSquares(boardstate.getDBObject().data.squares);
-        boardstate.setAvailableMoves(boardstate.getDBObject().data.moves);
+        boardstate.setSquares(JSON.parse(boardstate.getDBObject().data).squares);
+        boardstate.setAvailableMoves(JSON.parse(boardstate.getDBObject().data).moves);
 
         return boardstate;
     }
@@ -135,14 +141,18 @@ class TicTacToeBoardstate extends Boardstate {
         const alreadyExists = await this.exists();
 
         if (!alreadyExists) {
-            // Duplicate data, create new record by removing id
+            // Clone data, create new record by removing id
             let dataValues = JSON.parse(JSON.stringify(this._dbObject.dataValues));
             delete dataValues.id;
             this._dbObject = this.constructor._dbObjectBase.build(dataValues);
 
+            this.consolePrint();
+
             await super.save();
         } else {
-            // Do not save this existing object.
+            // Do not save this existing object
+            this._dbObject.isNewRecord = false;
+            await super.save();
         }
     }
 

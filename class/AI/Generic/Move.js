@@ -6,6 +6,16 @@ class Move extends DBObject {
     constructor() {
         super();
         this._data = {};
+        this._objectType = "generic";
+    }
+
+    setGame(game) {
+        this._data.game = game;
+        return this;
+    }
+
+    getGame() {
+        return this._data.game;
     }
 
     setData(data) {
@@ -28,16 +38,17 @@ class Move extends DBObject {
             return null;
         }
 
-        let move = this.create();
+        let move = this.build();
 
         move.setData(JSON.parse(dbData.data));
+        move.setId(id);
 
         return move;
     }
 
     async save() {
         this._dbObject.data = JSON.stringify(this.getData());
-        super.save();
+        await super.save();
     }
 }
 

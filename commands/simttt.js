@@ -14,7 +14,7 @@ module.exports = {
         let tictactoeAI = await TicTacToeAI.load(123);
 
         if (!tictactoeAI) {
-            tictactoeAI = repo.fetchClass("TicTacToeAI").create();
+            tictactoeAI = repo.fetchClass("TicTacToeAI").build();
 
             tictactoeAI.setId(123);
 
@@ -27,7 +27,7 @@ module.exports = {
         let otherAI = await TicTacToeAI.load(124);
 
         if (!otherAI) {
-            otherAI = repo.fetchClass("TicTacToeAI").create();
+            otherAI = repo.fetchClass("TicTacToeAI").build();
 
             otherAI.setId(124);
 

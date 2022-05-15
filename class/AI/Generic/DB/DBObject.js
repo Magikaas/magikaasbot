@@ -7,6 +7,7 @@ class DBObject extends General {
         this._id = null;
         this._data = {};
         this._dbObject = null;
+        this._objectType = "notype";
     }
 
     setId(id) {
@@ -44,8 +45,9 @@ class DBObject extends General {
     }
 
     async save() {
-        const oldId = this.getId();
+        // const oldId = this.getId();
         try {
+            this._dbObject.objecttype = this._objectType;
             await this._dbObject.save();
         }
         catch (err) {
@@ -53,10 +55,16 @@ class DBObject extends General {
         }
         
         this.setId(this._dbObject.id);
-        // console.log("Saved", this.constructor.name, oldId, "to", this.getId());
+        if (this.constructor.name === "TicTacToeBoardstate") {
+            // console.trace("Saved", this.constructor.name, oldId, "to", this.getId());
+        }
     }
-
-    static create() {
+    
+    /**
+     * 
+     * @returns {DBObject}
+     */
+    static build() {
         const className = this.name;
 
         const object = ClassRepository.fetchClass(className);
@@ -72,8 +80,8 @@ class DBObject extends General {
     }
 
     // Run static create function from instance
-    create() {
-        return this.constructor.create();
+    build() {
+        return this.constructor.build();
     }
 }
 

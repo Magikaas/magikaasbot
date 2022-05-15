@@ -7,8 +7,8 @@ class Player extends DBObject {
     constructor() {
         super();
         this._game = null;
-        this._side = null;
         this._data = {};
+        this._objectType = "generic";
     }
 
     setGame(game) {
@@ -25,12 +25,12 @@ class Player extends DBObject {
     }
 
     setSide(side) {
-        this._side = side;
+        this._data.side = side;
         return this;
     }
 
     getSide() {
-        return this._side;
+        return this._data.side;
     }
 
     setData(data) {
@@ -57,11 +57,11 @@ class Player extends DBObject {
         let player = {};
 
         if (!created) {
-            player = this.create();
+            player = this.build();
             player._dbObject = dbModel;
     
             player.setId(id);
-            player.setData(dbModel.data);
+            player.setData(JSON.parse(dbModel.data));
         }
         else {
             return null;

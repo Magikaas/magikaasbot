@@ -1,17 +1,15 @@
 const { DBTurn } = require("../../../mysql/tables");
-const Boardstate = require("./Boardstate");
 const DBObject = require("./DB/DBObject");
-const Game = require("./Game");
-const Move = require("./Move");
 
 class Turn extends DBObject {
     static _dbObjectBase = DBTurn;
     constructor() {
         super();
         this._sequence = 0;
-        this._move = {};
-        this._boardstate = {};
-        this._game = {};
+        this._move = null;
+        this._boardstate = null;
+        this._game = null;
+        this._objectType = "generic";
     }
 
     setSequence(sequence) {
@@ -50,37 +48,10 @@ class Turn extends DBObject {
         return this._game;
     }
 
-    changeWeight() {
-
-    }
-
-    static async getAllTurns(gameId) {
-        const dbData = await this._dbObjectBase.findAll({
-            attributes: ['id', 'sequence', 'moveId', 'boardstateId', 'gameId'],
-            where: {
-                gameId: gameId
-            }
-        });
-
-        let turns = [];
-        let turn = {};
-
-        for (let data of dbData) {
-            turn = Turn.create();
-
-            turn.setSequence(data.sequence)
-                .setBoardstate(await Boardstate.load(data.boardstateId))
-                .setMove(await Move.load(data.moveId))
-                .setGame(await Game.load(data.gameId));
-            
-            turns.push(turn);
-        }
-
-        return turns;
-    }
-
     static async load(id) {
-        const [dbModel, created] = this._dbObjectBase.findOrBuild({
+        const b = this._dbObjectBase;
+        const f = b.findOrBuild;
+        const [dbModel, created] = f({
             attributes: ['id', 'sequence', 'moveId', 'boardstateId', 'gameId'],
             where: {
                 id: id
@@ -91,13 +62,17 @@ class Turn extends DBObject {
             return null;
         }
 
-        let turn = this.create();
+        let turn = this.build();
         turn._dbObject = dbModel;
+        turn.setId(id);
 
         return turn;
     }
 
     async save() {
+        if (!this._boardstate.getId()) {
+            console.trace("Saving without boardstate");
+        }
         // console.trace("Saving game", this);
         this._dbObject.moveId = this._move.getId();
         this._dbObject.boardstateId = this._boardstate.getId();

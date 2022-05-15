@@ -7,6 +7,7 @@ class Boardstate extends DBObject {
         super();
         this._data = {};
         this._weightedMoves = {};
+        this._objectType = "generic";
     }
 
     setAvailableMoves(weightedMoves) {
@@ -40,8 +41,10 @@ class Boardstate extends DBObject {
         }
 
         // We run create to make sure the correct instance is generated
-        const boardstate = this.create();
+        const boardstate = this.build();
         boardstate._dbObject = dbModel;
+
+        boardstate.setId(id);
         
         return boardstate;
     }

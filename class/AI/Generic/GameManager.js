@@ -1,5 +1,6 @@
 const General = require("../../General");
 const ClassRepository = require("../ClassRepository");
+const TicTacToeTurn = require("../TicTacToe/TicTacToeTurn");
 
 const TICK_RATE = 5;
 
@@ -70,15 +71,17 @@ class GameManager extends General {
 
         let wonGame = null;
 
+        // We found a game that is finished, retroactively update all move weights
         if (wonGame = this.getFirstUnfinishedWonGame()) {
             console.log("Game", wonGame.getId(), "is over.", wonGame.getWinner(), "is the winner");
             // wonGame.getBoardstate().consolePrint();
             wonGame.finish();
-            const Turn = require("./Turn");
-
-            Turn.getAllTurns(wonGame.getId());
-
-
+            wonGame.getAllTurns()
+            .then(async (turns) => {
+                for (let turn of turns) {
+                    await turn.adjustWeight();
+                }
+            });
         }
 
         if (moves.length == 0) {
@@ -115,25 +118,34 @@ class GameManager extends General {
 
     async handleMove(moveData) {
         const Move = require("./Move");
-        const Turn = require("./Turn");
         const game = this.getGame(moveData.game);
+        
+        // console.log("Handling move for game", game.getId());
+
+        const turn = game.buildTurn();
+
+        let boardstate = game.getBoardstate();
+
+        boardstate = Object.assign(Object.create(Object.getPrototypeOf(boardstate)), boardstate);
+
+        const moves = boardstate.getAvailableMoves();
+
+        turn.setBoardstate(boardstate);
 
         await game.handleMove(moveData);
 
         await game.save();
 
-        let move = Move.create();
+        const move = Move.build();
 
         move.setData(moveData);
 
         await move.save();
 
-        const turn = Turn.create();
-        turn.setGame(game)
-            .setBoardstate(game.getBoardstate())
-            .setMove(move);
+        turn.setMove(move)
+            .setGame(game);
         
-        turn.save();
+        await turn.save();
 
         this.updateGame(game);
     }
@@ -226,9 +238,13 @@ class GameManager extends General {
      * @returns {Game}
      */
     async initiateGame(gameName) {
-        const game = await ClassRepository.fetchClass(this.getGameClass(gameName)).constructor.create();
+        const game = await ClassRepository.fetchClass(this.getGameClass(gameName)).constructor.build();
 
         const boardstate = await game.loadDefaultBoardstate();
+
+        if (!boardstate.getId()) {
+            await boardstate.save();
+        }
         
         game.setBoardstate(boardstate);
         
@@ -313,7 +329,7 @@ class GameManager extends General {
         let gameplayer = await GamePlayer.loadByData(game, player);
 
         if (!gameplayer) {
-            gameplayer = GamePlayer.create();
+            gameplayer = GamePlayer.build();
 
             gameplayer.setSide(player.getSide());
         }
@@ -340,6 +356,19 @@ class GameManager extends General {
     removePlayerFromGame(game, player) {
         game.removePlayer(player);
         return this;
+    }
+
+    async validateTurns(gameId) {
+        if (gameId) {
+            const turns = await TicTacToeTurn.loadByGame(gameId);
+        }
+        else {
+            const turns = await TicTacToeTurn.loadAll();
+        }
+
+        for (let turn of turns) {
+            turn.validate();
+        }
     }
 }
 

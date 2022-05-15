@@ -62,9 +62,11 @@ class GameType extends DBObject {
             return null;
         }
 
-        let gametype = this.create();
+        let gametype = this.build();
         
         gametype._dbObject = dbModel;
+
+        gametype.setId(dbModel.id);
 
         gametype.setId(dbModel.id)
             .setName(dbModel.name)
