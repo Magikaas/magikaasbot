@@ -202,7 +202,19 @@ client.on("message", async function(message) {
 
     let commandObject = client.commands.get(commandName);
 
-    const command = new Command(commandObject, args, message, client);
+    let voiceChannel = false;
+
+    if (commandObject && commandObject.voice) {
+        if (args.length > 0) {
+            const channelName = args.join(" ");
+            voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
+        }
+        else if (message.member.voice.channel) {
+            voiceChannel = message.member.voice.channel;
+        }
+    }
+
+    const command = new Command(commandObject, args, message, client, voiceChannel);
 
     command.run();
 });

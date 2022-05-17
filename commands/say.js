@@ -5,6 +5,8 @@ const util = require('util');
 module.exports = {
     name: "say",
     description: "Play text as voiced audio",
+    voice: true,
+    voicereq: false,
     async execute(message, args) {
         let gender = message.client.tts.gender;
         let language = message.client.tts.language;

@@ -135,6 +135,9 @@ class VoiceHandler {
                 console.log(e);
             }
         }
+        else {
+            console.log("Unable to play sound, not connected to voice channel.");
+        }
     }
 
     startQueue(guildId) {

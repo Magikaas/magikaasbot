@@ -1,10 +1,11 @@
 class Command {
     
-    constructor(command, args, message, client) {
+    constructor(command, args, message, client, voiceChannel = false) {
         this.command = command;
         this.args = args;
         this.message = message;
         this.client = client;
+        this.voiceChannel = voiceChannel;
     }
 
     run() {
@@ -67,9 +68,17 @@ class Command {
         }
     
         if (this.isVoiceCommand() && !this.client.getVoiceHandler(guildId).isConnected()) {
-            const voiceChannel = this.message.member.voice.channel;
-    
+            let voiceChannel = this.voiceChannel ? this.voiceChannel : this.message.member.voice.channel;
+
+            // If we still don't have a provided voice channel, check if we're connected to one instead
             if (!voiceChannel) {
+                if (this.client.getVoiceHandler(guildId).getCurrentVoiceChannel()) {
+                    voiceChannel = this.client.getVoiceHandler(guildId).getCurrentVoiceChannel();
+                    this.client.getVoiceHandler(guildId).setChannel(voiceChannel);
+                }
+            }
+    
+            if (!voiceChannel && this.isVoiceRequired()) {
                 return this.message.channel.send("You need to be in a voice channel to play music!");
             }
     
@@ -79,10 +88,15 @@ class Command {
               return this.message.channel.send("I need the permissions to join and speak in your voice channel!");
             }
     
-            this.client.getVoiceHandler(guildId).setChannel(this.message.member.voice.channel);
+            this.client.getVoiceHandler(guildId).setChannel(voiceChannel);
             this.client.getVoiceHandler(guildId).connect().then(connection => {
-                this.client.getVoiceHandler(guildId).setConnection(connection);
-                this.execute();
+                if (connection) {
+                    this.client.getVoiceHandler(guildId).setConnection(connection);
+                    this.execute();
+                }
+                else {
+                    console.log("Unable to run voice command, no connection detected");
+                }
             });
         }
         else {
@@ -107,6 +121,10 @@ class Command {
 
     isVoiceCommand() { 
         return !!this.command.voice;
+    }
+
+    isVoiceRequired() {
+        return !!this.command.voicereq;
     }
 
     isAdminCommand() {
