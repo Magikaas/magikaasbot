@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@discordjs/opus": "^0.3.3",
+    "@discordjs/opus": "^0.7.0",
     "@google-cloud/text-to-speech": "^3.4.0",
     "@google-cloud/translate": "^6.3.1",
     "brain.js": "^2.0.0-beta.15",
     "crypto": "^1.0.1",
-    "discord.js": "^12.5.3",
+    "discord.js": "^13.8.1",
     "eslint": "^7.32.0",
     "ffmpeg": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",
@@ -24,7 +24,6 @@
     "xmlhttprequest": "^1.8.0",
     "ytdl-core": "^4.11.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
