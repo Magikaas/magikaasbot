@@ -1,11 +1,28 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const Sequelize = require('sequelize');
-const client = new Discord.Client();
 
 // Import the config.
 let config = require('../config.json');
 const botEnv = require('./env.json');
+
+if (!config.magikaasbot[botEnv.version]) {
+    throw new Error("Unable to find configuration for Magikaasbot", botEnv.version, "environment"); // Throw an error if the config is not found.
+}
+
+config = config.magikaasbot[botEnv.version];
+
+const prefix = config.prefix;
+const client = new Discord.Client(config.intents);
+
+client.prefix = config.prefix;
+client.googleApiKey = config.gapi_key;  // Google API key.  This is used to get the youtube video information.
+
+client.config = config;
+
+// Debugging, log the prefix of the bot.
+console.log("Prefix: " + prefix);
+
 const Tables = require('./mysql/tables');
 const VoiceHandler = require('./class/VoiceHandler');
 const RoleManager = require('./class/RoleManager');
@@ -13,7 +30,7 @@ const YoutubeQueueHandler = require('./class/YoutubeQueueHandler');
 const Command = require('./class/Command');
 const Queue = require('./class/Queue');
 
-const sequelize = new Sequelize('database', 'user', 'password', {
+const sequelize = new Sequelize('database', 'user', 'password', {   // Create a new sequelize instance.
     host: 'localhost',
     dialect: 'sqlite',
     logging: false,
@@ -21,7 +38,7 @@ const sequelize = new Sequelize('database', 'user', 'password', {
     storage: 'database.sqlite',
 });
 
-function prepDatabase() {
+function prepDatabase() {   // Prepare the database.
     let importData = {};
     let table = {};
     let importFile = "";
@@ -59,22 +76,40 @@ function prepDatabase() {
 console.log("Preparing Database");
 prepDatabase();
 
+function recoverNeuralNetwork() {
+    console.log("Recovering neural network");
+    recoverTrainingData();
+    
+    if (fs.existsSync("./data/ai/neuralNetwork.json")) {
+        client.net.fromJSON(JSON.parse(fs.readFileSync("./data/ai/neuralNetwork.json"))); // Load the neural network.
+    }
+
+    if (client.net.isRunnable) {
+        console.log("Neural network is runnable");
+        client.ai.errorMargin = client.net.trainOpts.errorThresh;
+    }
+    else {
+        console.log("Neural network is not runnable");
+        train((error) => { console.log(error) });
+    }
+}
+
 // Neural Networking
 const brain = require("brain.js");
 const AutoDiscovery = require('./class/AutoDiscovery');
 
-const discoverer = new AutoDiscovery();
+const discoverer = AutoDiscovery;
 discoverer.run();
 
 const net = new brain.NeuralNetwork({
-    hiddenLayers: [100, 100, 100]
+    hiddenLayers: [100, 25, 4],
 });
 
 client.net = net;
 client.ai = {};
 
-function train() {
-    const trainingResult = client.trainNet(client.ai.trainingData);
+function train(callback = null) {
+    const trainingResult = client.trainNet(client.ai.trainingData, callback);
 
     client.ai.errorMargin = trainingResult.error;
 
@@ -83,11 +118,80 @@ function train() {
 
 client.train = train;
 
-function trainNet(trainingData) {
+function showTrainingData() {
+    console.log("Showing training data");
+    console.log(client.ai.trainingData);
+}
+
+client.showTrainingData = showTrainingData;
+
+function giveMessages(message, channel, messages) {
+    let messageIndex = 0;
+    let messageInterval = setInterval(() => {
+        channel.send(messages[messageIndex]);
+        messageIndex++;
+        if (messageIndex >= messages.length) {
+            clearInterval(messageInterval);
+        }
+    }, message.author.id == client.user.id ? 1000 : 2000);
+}
+
+function whatIs(message) {
+    let result = "";
+    let words = message.content.split(" ");
+    for (let i = 1; i < words.length; i++) {
+        result += words[i] + " ";
+    }
+    return result;
+}
+
+function getRoleManager(guildId) {
+    return client.roleManagers[guildId];
+}
+
+function trainNeuralNetwork(message, channel) {
+    let result = "";
+    let words = message.content.split(" ");
+    for (let i = 1; i < words.length; i++) {
+        result += words[i] + " ";
+    }
+    channel.send("Learning: " + result);
+    client.ai.trainingData.push({
+        input: {
+            [result.toLowerCase()]: 1
+        },
+        output: {
+            [message.author.id]: 1
+        }
+    });
+    train((error) => { console.log(error) });
+}
+
+function useNeuralNetwork(message) {
+    let result = runNet(whatIs(message));
+    let max = 0;
+    let maxKey = "";
+    for (let k in result) {
+        if (result[k] > max) {
+            max = result[k];
+            maxKey = k;
+        }
+    }
+    if (max > 0.5) {
+        return maxKey;
+    }
+    return null;
+}
+
+client.useNeuralNetwork = useNeuralNetwork;
+
+function trainNet(trainingData, callback) {
+    console.log("Training neural network");
     try {
         return client.net.train(trainingData, {
             logPeriod: 500,
-            log: (error) => console.log(error)
+            log: callback,
+            errorThresh: 0.005,
         });
     }
     catch (e) {
@@ -109,7 +213,7 @@ client.commands = new Discord.Collection();
 
 const ERRORLOGFILE = "./error.log";
 
-client.tts = {
+client.tts = {  // TTS is text to speech.
     language: "nl-NL",
     gender: "MALE",
     queue: new Queue(),
@@ -117,30 +221,15 @@ client.tts = {
 };
 
 // Always guarantee an error log file.
-guaranteeFile(ERRORLOGFILE);
+guaranteeFile(ERRORLOGFILE);    // Guarantee that the error log file exists.
 
-function guaranteeFile(file) {
+function guaranteeFile(file) {  // Guarantee that a file exists.    If it doesn't, create it.   If it does, do nothing. This is useful for error logs.
     if (!fs.existsSync(file)) {
         fs.writeFileSync(file, "");
     }
 }
 
 const roleManager = new RoleManager();
-
-if (!config.magikaasbot[botEnv.version]) {
-    throw new Error("Unable to find configuration for Magikaasbot", botEnv.version, "environment");
-}
-
-config = config.magikaasbot[botEnv.version];
-const prefix = config.prefix;
-
-client.prefix = config.prefix;
-client.googleApiKey = config.gapi_key;
-
-client.config = config;
-
-// Debugging, log the prefix of the bot.
-console.log("Prefix: " + prefix);
 
 function loadCommands(config) {
     // Load the command files.
@@ -158,11 +247,11 @@ function loadCommands(config) {
             }
         }
     
-        client.commands.set(command.name, command);
+        client.commands.set(command.name, command); // Add the command to the collection.
     }
 }
 
-loadCommands(config);
+loadCommands(config);   // Load the commands.
 
 client.loadCommands = loadCommands;
 
@@ -175,9 +264,9 @@ client.once('ready', () => {
             name: config.activity,
             type: "PLAYING"
         }
-    });
+    }); // Set the bot's presence.  This is used to show the bot's status.
 
-    console.log('Ready, running on "' + client.user.username + '"!');
+    console.log('Ready, running on "' + client.user.username + '"!');   // Log the bot is ready.
 });
 
 function getVoiceHandler(guildId) {
@@ -187,16 +276,16 @@ function getVoiceHandler(guildId) {
 client.getVoiceHandler = getVoiceHandler;
 
 function addVoiceHandler(guildId) {
-    client.voiceHandlers[guildId] = new VoiceHandler(client);
+    client.voiceHandlers[guildId] = new VoiceHandler(client);   // Create a new voice handler.  This will be used to play audio.
 }
 
-client.addVoiceHandler = addVoiceHandler;
+client.addVoiceHandler = addVoiceHandler;   // Add a voice handler to the client.
 
 // Command handling.
 client.on("message", async function(message) {
-    if (!message.content.startsWith(prefix) || message.author.bot) return;
+    if (!message.content.startsWith(prefix) || message.author.bot) return;  // Ignore messages that don't start with the prefix.
 
-    const args = message.content.slice(prefix.length + 1).split(/ +/);
+    const args = message.content.slice(prefix.length + 1).split(/ +/);  // Split the message into arguments.
 
     let commandName = args.shift().toLowerCase();
 
@@ -214,9 +303,9 @@ client.on("message", async function(message) {
         }
     }
 
-    const command = new Command(commandObject, args, message, client, voiceChannel);
+    const command = new Command(commandObject, args, message, client, voiceChannel);    // Create a new command object.
 
-    command.run();
+    command.run();                                                                    // Run the command.
 });
 
 client.voiceUsers = [];
@@ -234,11 +323,11 @@ client.on("voiceStateUpdate", voiceState => {
     }
 
     if (voiceState.channelID === client.voice.connections.find(connection => connection).channel.id) {
-        if (voiceState.channel.members.size === 1) {
+        if (voiceState.channel.members.size === 1) {    // If the channel is empty, disconnect. This is to prevent the bot from disconnecting when it's only in a voice channel.
             const myChannel = client.voice.connections.get(voiceState.channelID);
 
             if (!!myChannel) {
-                myChannel.disconnect();
+                myChannel.disconnect(); // Disconnect from the voice channel.
             }
         }
     }
@@ -267,3 +356,51 @@ client.roleManager = roleManager;
 client.ytQueueHandler = new YoutubeQueueHandler();
 
 client.login(config.token);
+
+function dumpNeuralNetwork() {
+    const json = client.net.toJSON();
+    console.log("Dumping neural network...");
+    fs.writeFileSync("./data/ai/neuralNetwork.json", JSON.stringify(json));
+    console.log("Neural network dumped.");
+
+    console.log("Dumping neural network weights...");
+    fs.writeFileSync("./data/ai/neuralNetworkWeights.json", JSON.stringify(client.net.toJSON().layers));
+    console.log("Neural network weights dumped.");
+
+    console.log("Dumping neural network biases...");
+    fs.writeFileSync("./data/ai/neuralNetworkBiases.json", JSON.stringify(client.net.toJSON()));
+    console.log("Neural network biases dumped.");
+}
+
+client.dumpNeuralNetwork = dumpNeuralNetwork;
+
+function recoverTrainingData() {
+    console.log("Recovering training data...");
+    const trainingData = fs.readFileSync("./data/ai/trainingdata.json", "utf8");
+    client.ai.trainingData = JSON.parse(trainingData);
+    console.log("Training data recovered.");
+}
+
+client.recoverTrainingData = recoverTrainingData;
+
+recoverNeuralNetwork(); // Recover the neural network.
+
+if (config.debug) {
+    console.log("Debug mode enabled.");
+    const debugCommand = client.commands.get("sim");
+
+    debugCommand.execute(null, ["sim", 1]);
+}
+
+let process = require("process");
+
+process.on("SIGINT", () => {
+    dumpNeuralNetwork();
+    process.exit(0);
+}
+);
+
+process.on("exit", () => {
+    console.log("Exiting...");
+    client.destroy();    // Disconnect the bot. This is important, otherwise the bot will continue to run in the background.
+});

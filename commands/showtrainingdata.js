@@ -2,8 +2,16 @@ module.exports = {
     name: "showtrainingdata",
     description: "Command description",
     async execute(message, args) {
-        const trainingData = message.client.ai.trainingData;
+        if (!message.client.ai.trainingData || message.client.ai.trainingData.length === 0) {
+            message.reply("No training data");
+            return;
+        }
 
-        console.log(trainingData);
+        message.client.dumpNeuralNetwork();
+
+        message.client.ai.trainingData.forEach((record) => {
+            console.log(record);
+        }
+        );
     }
 };

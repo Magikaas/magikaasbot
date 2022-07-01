@@ -4,7 +4,7 @@ module.exports = {
     async execute(message, args) {
         await message.reply("Started training");
 
-        const trainingResult = message.client.train();
+        const trainingResult = message.client.train((error) => { message.reply("Training... Error margin: " + error.error + ". Progress: " + error.iterations); });
 
         message.reply("Trained!");
     }

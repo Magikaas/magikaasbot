@@ -17,9 +17,10 @@ module.exports = {
 
             console.log("Class: " + className);
             console.log("Probability: " + probability);
+            console.log("Errormargin: " + message.client.ai.errorMargin);
 
             if (probability > message.client.ai.errorMargin) {
-                replyText += className + "\n";
+                replyText += className + "\t" + parseInt(probability*100) + "\n";
             }
         }
 

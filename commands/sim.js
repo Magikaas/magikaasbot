@@ -13,6 +13,8 @@ module.exports = {
         // tttAI.simulate(args.shift());
         // tttAI.postSimulationReport(message);
 
+        console.log("Simulating...", args);
+
         const repo = ClassRepository;
         const manager = GameManager;
 
@@ -20,7 +22,7 @@ module.exports = {
 
         let games = [];
 
-        message.reply("Starting " + gameCount + " games");
+        // message.reply("Starting " + gameCount + " games");
         
         for (let i = 0; i < gameCount; i++) {
             const game = await manager.initiateGame("tictactoe");
@@ -58,6 +60,6 @@ module.exports = {
             // message.reply("Game started with ID: " + game.getId());
         }
 
-        message.reply("Starting games " + games.join(", "));
+        // message.reply("Starting games " + games.join(", "));
     }
 };

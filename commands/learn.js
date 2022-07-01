@@ -1,4 +1,5 @@
 const DNDAPIFetcher = require("../class/DNDAPIFetcher");
+const fs = require("fs");
 
 module.exports = {
     name: "learn",
@@ -43,6 +44,17 @@ module.exports = {
                             };
                             
                             message.client.ai.trainingData.push(trainingDataRecord);
+                        })
+                        .catch((e) => {
+                            console.log(e);
+
+                            message.channel.send("Error fetching spell data");
+                        })
+                        .finally(() => {
+                            console.log(`${spellIndex}\t${message.client.ai.trainingData.length}`);
+                            console.log("Dumping training data...");
+                            fs.writeFileSync("./data/ai/trainingdata.json", JSON.stringify(message.client.ai.trainingData));
+                            console.log("Training data dumped.");
                         });
                 }
 

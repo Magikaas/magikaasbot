@@ -24,22 +24,13 @@ class Game extends DBObject {
         this.setGametype(gametype);
     }
 
-    setStatus(status) {
-        this._status = status;
-        return this;
-    }
-
-    getStatus() {
-        return this._status;
-    }
-
     /**
      * 
      * @param {Player} player 
      * @returns {GamePlayer}
      */
     async addPlayer(player) {
-        this._players[player.getId()] = player;
+        super.addPlayer(player);
 
         const GamePlayer = require("./GamePlayer");
 
@@ -64,23 +55,6 @@ class Game extends DBObject {
             this._players[player.getId()] = null;
         }
         return this;
-    }
-
-    getPlayers() {
-        return this._players;
-    }
-
-    /**
-     * 
-     * @param {GameType} gametype 
-     */
-    setGametype(gametype) {
-        this._gametype = gametype;
-        return this;
-    }
-
-    getGametype() {
-        return this._gametype;
     }
 
     setData(data) {
@@ -108,27 +82,6 @@ class Game extends DBObject {
      */
     getType() {
         return this._type;
-    }
-
-    /**
-     * Set this game's board data
-     * 
-     * @param {Boardstate} boardstate 
-     * @returns {Game}
-     */
-    setBoardstate(boardstate) {
-        // console.trace("Setting boardstate", boardstate);
-        this._boardstate = boardstate;
-        return this;
-    }
-
-    /**
-     * Fetch this game's board
-     * 
-     * @returns {Boardstate}
-     */
-    getBoardstate() {
-        return this._boardstate;
     }
 
     initiateBoardstate() {
@@ -179,10 +132,6 @@ class Game extends DBObject {
         }
         this._currentTurnPlayer = player;
         return this;
-    }
-
-    getClass() {
-        return this.class
     }
 
     getRandomPlayer() {

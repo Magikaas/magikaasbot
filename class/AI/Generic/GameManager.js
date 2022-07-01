@@ -261,7 +261,9 @@ class GameManager extends General {
      * @param {Game} game 
      */
     startGame(game) {
+        console.log("Starting game", this.getId());
         game.startGame();
+        console.log("Game", this.getId(), "started");
     }
 
     /**
