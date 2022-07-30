@@ -13,7 +13,7 @@ if (!config.magikaasbot[botEnv.version]) {
 config = config.magikaasbot[botEnv.version];
 
 const prefix = config.prefix;
-const client = new Discord.Client(config.intents);
+const client = new Discord.Client({intents: config.intents});
 
 client.prefix = config.prefix;
 client.googleApiKey = config.gapi_key;  // Google API key.  This is used to get the youtube video information.
@@ -213,7 +213,7 @@ client.commands = new Discord.Collection();
 
 const ERRORLOGFILE = "./error.log";
 
-client.tts = {  // TTS is text to speech.
+client.tts = {
     language: "nl-NL",
     gender: "MALE",
     queue: new Queue(),
@@ -221,9 +221,9 @@ client.tts = {  // TTS is text to speech.
 };
 
 // Always guarantee an error log file.
-guaranteeFile(ERRORLOGFILE);    // Guarantee that the error log file exists.
+guaranteeFile(ERRORLOGFILE);
 
-function guaranteeFile(file) {  // Guarantee that a file exists.    If it doesn't, create it.   If it does, do nothing. This is useful for error logs.
+function guaranteeFile(file) {
     if (!fs.existsSync(file)) {
         fs.writeFileSync(file, "");
     }
@@ -279,13 +279,13 @@ function addVoiceHandler(guildId) {
     client.voiceHandlers[guildId] = new VoiceHandler(client);   // Create a new voice handler.  This will be used to play audio.
 }
 
-client.addVoiceHandler = addVoiceHandler;   // Add a voice handler to the client.
+client.addVoiceHandler = addVoiceHandler;
 
 // Command handling.
 client.on("message", async function(message) {
     if (!message.content.startsWith(prefix) || message.author.bot) return;  // Ignore messages that don't start with the prefix.
 
-    const args = message.content.slice(prefix.length + 1).split(/ +/);  // Split the message into arguments.
+    const args = message.content.slice(prefix.length + 1).split(/ +/);
 
     let commandName = args.shift().toLowerCase();
 
@@ -303,9 +303,9 @@ client.on("message", async function(message) {
         }
     }
 
-    const command = new Command(commandObject, args, message, client, voiceChannel);    // Create a new command object.
+    const command = new Command(commandObject, args, message, client, voiceChannel);
 
-    command.run();                                                                    // Run the command.
+    command.run();
 });
 
 client.voiceUsers = [];
@@ -317,16 +317,54 @@ client.on("voiceStateUpdate", voiceState => {
         return;
     }
 
-    if (!client.voice.connections.find(connection => connection) ||
-        voiceState.channelID !== client.voice.connections.find(connection => connection).channel) {
+    if (voiceState.member.user.bot) {
         return;
     }
 
-    if (voiceState.channelID === client.voice.connections.find(connection => connection).channel.id) {
-        if (voiceState.channel.members.size === 1) {    // If the channel is empty, disconnect. This is to prevent the bot from disconnecting when it's only in a voice channel.
-            const myChannel = client.voice.connections.get(voiceState.channelID);
+    let isInRelevantVoiceChannel = false;
+    let relevantVoiceChannelId = null;
+
+    if (voiceState.guild.id in client.voiceHandlers) {
+        relevantVoiceChannelId = client.voiceHandlers[voiceState.guild.id].getChannel().id;
+        isInRelevantVoiceChannel = voiceState.channel.id === relevantVoiceChannelId;
+    }
+
+    // Disconnect if only user in voice channel
+    if (isInRelevantVoiceChannel && voiceState.guild.voice.channel) {
+        if (voiceState.guild.voice.channel.members.size === 1) {
+            voiceState.guild.voice.channel.leave();
+        }
+    }
+    return;
+    
+    // WIP
+    try {
+        for (const [key, channel] of client.voice.adapters) {
+            console.log(key + " = " + voiceState.channel.id);
+            if (key === voiceState.channel.id) {
+                isInRelevantVoiceChannel = true;
+                relevantVoiceChannelId = key;
+                break;
+            }
+        }
+
+        if (!isInRelevantVoiceChannel) {
+            return;
+        }
+    }
+    catch (e) {
+        writeToErrorLog(e);
+    }
+
+    console.log(voiceState.channelID + " = " + relevantVoiceChannelId);
+    if (voiceState.channelID === relevantVoiceChannelId) {
+        console.log("Relevant Channel");
+        if (voiceState.channel.members.size === 1) {    // If the channel only contains the bot, disconnect.
+            const myChannel = client.voice.adapters.get(voiceState.channelID);
+            console.log(myChannel);
 
             if (!!myChannel) {
+                client.voice.disconnect();
                 myChannel.disconnect(); // Disconnect from the voice channel.
             }
         }
@@ -342,12 +380,17 @@ function writeLog(logString, logType = "error") {
     
     let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
     let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
-    fs.appendFile("./logs/" + logType + ".log", "[" + date.getHours() + ":" + minutes + ":" + seconds + " - " + date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "] " + logString + "\n", function(err) {
+    fs.appendFileSync("./logs/" + logType + ".log", "[" + date.getHours() + ":" + minutes + ":" + seconds + " - " + date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "] " + logString + "\n", function(err) {
         // console.log("Wrote log to: " + logType);
     });
 }
 
 client.writeLog = writeLog;
+
+function writeToErrorLog(logString) {
+    console.log("Writing to error log: " + logString);
+    writeLog(logString, "error");
+}
 
 client.voiceHandlers = {};
 
@@ -402,5 +445,5 @@ process.on("SIGINT", () => {
 
 process.on("exit", () => {
     console.log("Exiting...");
-    client.destroy();    // Disconnect the bot. This is important, otherwise the bot will continue to run in the background.
+    client.destroy();
 });

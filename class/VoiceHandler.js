@@ -1,5 +1,6 @@
 const fs = require('fs');
 const MusicQueue = require('./MusicQueue');
+const { joinVoiceChannel, getVoiceConnection, VoiceConnectionStatus, entersState, createAudioPlayer, createAudioResource, NoSubscriberBehavior } = require('@discordjs/voice');
 
 class VoiceHandler {
     constructor(client) {
@@ -49,18 +50,69 @@ class VoiceHandler {
     }
 
     getConnection() {
-        return this._connection;
+        let vc = null;
+        if(this._connection) {
+            return this._connection;
+        }
+        else {
+            vc = getVoiceConnection(this._channel.guild.id);
+        }
+
+        if (vc) {
+            return vc;
+        }
+        else {
+            return null;
+        }
+    }
+
+    createAudioPlayer() {
+        return createAudioPlayer({
+            behaviors: {
+                noSubscriber: NoSubscriberBehavior.Pause,
+            },
+        });
+    }
+
+    getAudioPlayer() {
+        return this._audioPlayer;
     }
 
     async connect() {
         if (this._channel) {
-            return this._channel.join();
+            const connection = joinVoiceChannel({
+                channelId: this._channel.id,
+                guildId: this._channel.guild.id,
+                adapterCreator: this._channel.guild.voiceAdapterCreator,
+                selfDeaf: false
+            });
+
+            connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+                try {
+                    await Promise.race([
+                        entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                        entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                    ]);
+                    // Seems to be reconnecting to a new channel - ignore disconnect
+                } catch (error) {
+                    // Seems to be a real disconnect which SHOULDN'T be recovered from
+                    connection.destroy();
+                }
+            });
+
+            this.setConnection(connection);
+
+            // Subscribe the connection to the audio player (will play audio on the voice connection)
+            const subscription = connection.subscribe(this.createAudioPlayer());
+
+            return true;
         }
+
+        return false;
     }
 
     disconnect() {
-        this._connection.disconnect();
-        this._connection = null;
+        this.getConnection().destroy();
     }
 
     soundCategoryExists(sound) {
@@ -105,8 +157,19 @@ class VoiceHandler {
         return this.play(soundFile);
     }
 
-    playYT(youtubeURL) {
-        return this.play(youtubeURL);
+    playYT(youtubeURL, guildId) {
+        const guild = this._client.guilds.cache.get(guildId);
+
+        if (guild) {
+            const queue = this._queueHandler.getQueue(guildId);
+
+            if (queue) {
+                queue.addYT(youtubeURL);
+            }
+
+            this.playYTFromQueue(youtubeURL, guildId);
+        }
+        return this.play(youtubeURL, connection);
     }
 
     playLoop(source) {
@@ -126,10 +189,45 @@ class VoiceHandler {
         });
     }
 
-    play(source) {
+    playYTFromQueue(youtubeURL, guildId) {
+        const guild = this._client.guilds.cache.get(guildId);
+        const queue = this._queueHandler.getQueue(guildId);
+
+        if (guild && queue) {
+            const connection = this.getConnection();
+
+            if (connection) {
+                const player = connection.player;
+
+                if (player) {
+                    const resource = createAudioResource(youtubeURL);
+                    player.play(resource);
+
+                    connection.subscribe(player);
+                }
+            }
+        }
+    }
+
+    play(source, guild) {
         if (this.isConnected()) {
             try {
-                return this.getConnection().play(source, { volume: 0.5 });
+                let player = this.getAudioPlayer();
+
+                if (!player) {
+                    player = this.createAudioPlayer();
+                }
+
+                let audioResource = createAudioResource(source);
+
+                if (player) {
+                    player.play(audioResource, { volume: 0.5 });
+                    const voiceConnection = getVoiceConnection(guild.id);
+                    voiceConnection.subscribe(player);
+                }
+                else {
+                    console.log("No audio player found");
+                }
             }
             catch (e) {
                 console.log(e);
