@@ -1,8 +1,17 @@
 const textToSpeech = require('@google-cloud/text-to-speech');
+const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const util = require('util');
 
 module.exports = {
+    data: new SlashCommandBuilder()
+            .setName('say')
+            .setDescription('Play text as voiced audio')
+            .addStringOption(option =>
+                option.setName('text')
+                    .setDescription('The text you want to play.')
+                    .setRequired(true)
+            ),
     name: "say",
     voice: true,
     description: "Play text as voiced audio",

@@ -1,3 +1,10 @@
+vtt/*
+g4/*
+data/*
+image/*
+mysql/*
+resources/*
+
 config.json
 node_modules
 env.json
@@ -10,3 +17,4 @@ character
 logs
 speechsynth.json
 *.mp3
+nlp.py
