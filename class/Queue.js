@@ -1,4 +1,4 @@
-const QueueItem = require("./QueueItem");
+const QueueItem = require("./QueueItem.js");
 
 class Queue {
     constructor() {
@@ -11,33 +11,61 @@ class Queue {
     prev() {
         if (!this.current()) {
             // There is no current item, so there are no items in the queue
-            return false;
+            return;
         }
 
-        if (!this.current().prev()) {
+        if (!this.current().hasPrev()) {
             // No previous item, this is the start of the queue
-            return false;
+            return;
         }
 
         this._current = this.current().prev();
     }
 
     next() {
-        if (!this.current) {
+        if (!this.current()) {
             // There is no current item, so there are no items in the queue
-            return false;
+            return;
         }
 
-        if (!this.current().next()) {
+        if (!this.current().hasNext()) {
             // No next item, this is the end of the queue
-            return false;
+            return;
         }
 
         this._current = this.current().next();
     }
 
+    get(index) {
+        if (index < 0 || index >= this.length) {
+            return;
+        }
+
+        let item = this.first();
+
+        for (let i = 0; i < index; i++) {
+            item = item.next();
+        }
+
+        return item;
+    }
+
     current() {
         return this._current;
+    }
+
+    currentValue() {
+        if (!this.current()) {
+            return;
+        }
+        return this.current().value();
+    }
+
+    hasNext() {
+        if (!this.current()) {
+            return false;
+        }
+        return this.current().hasNext();
     }
 
     clear() {
@@ -62,7 +90,7 @@ class Queue {
 
     // Add an item to the end of the queue
     push(value) {
-        let item = new QueueItem.QueueItem(this.last(), value, null);
+        const item = new QueueItem(this.last(), value, null);
         if (!this.current()) {
             // This is the first item in the queue now
             this._first = item;
@@ -107,7 +135,7 @@ class Queue {
 
     // Remove the first item from the queue
     shift() {
-        let item = this.first();
+        const item = this.first();
 
         this.first().next().setPrev(null);
         this._first = this.first().next();
@@ -115,6 +143,10 @@ class Queue {
         this._len--;
 
         return item;
+    }
+
+    resetPointer() {
+        this._current = this.first();
     }
 
     first() {
@@ -132,8 +164,10 @@ class Queue {
     reset() {
         this._current = this.first();
     }
+
+    isEmpty() {
+        return this.getLength() == 0;
+    }
 }
 
-module.exports = {
-    Queue
-}
+module.exports = Queue;

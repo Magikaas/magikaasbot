@@ -1,4 +1,4 @@
-const QueueItem = require("./QueueItem");
+const QueueItem = require(("./QueueItem"));
 
 class YoutubeQueueItem extends QueueItem.QueueItem {
     url() {

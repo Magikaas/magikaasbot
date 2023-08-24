@@ -1,7 +1,7 @@
-const GuildQueueHandler = require("./GuildQueueHandler");
-const ytdl = require('ytdl-core');
+const GuildQueueHandler = require("./GuildQueueHandler.js");
+const ytdl = require("ytdl-core");
 
-class YoutubeQueueHandler extends GuildQueueHandler.GuildQueueHandler {
+class YoutubeQueueHandler extends GuildQueueHandler {
     constructor() {
         super();
         this._playing = false;
@@ -78,6 +78,4 @@ class YoutubeQueueHandler extends GuildQueueHandler.GuildQueueHandler {
     }
 }
 
-module.exports = {
-    YoutubeQueueHandler
-}
+module.exports = YoutubeQueueHandler;

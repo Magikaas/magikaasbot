@@ -24,6 +24,4 @@ class DataObject {
     }
 }
 
-module.exports = {
-    DataObject
-}
+module.exports = DataObject

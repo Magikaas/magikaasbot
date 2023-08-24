@@ -20,6 +20,10 @@ class GuildQueueHandler {
         return this.queues.get(guildId);
     }
 
+    hasQueue(guildId) {
+        return this.queues.has(guildId);
+    }
+
     clearQueue(guildId) {
         const queue = this.queues.get(guildId);
 
@@ -27,8 +31,46 @@ class GuildQueueHandler {
 
         this.queues.set(guildId, queue);
     }
+
+    queueIsEmpty(guildId) {
+        const queue = this.queues.get(guildId);
+
+        if (!queue) {
+            return true;
+        }
+
+        return queue.isEmpty();
+    }
+
+    getQueueLength(guildId) {
+        const queue = this.queues.get(guildId);
+
+        if (!queue) {
+            return 0;
+        }
+
+        return queue.length;
+    }
+
+    getQueueItem(guildId, index) {
+        const queue = this.queues.get(guildId);
+
+        if (!queue) {
+            return null;
+        }
+
+        return queue.get(index);
+    }
+
+    isLooping(guildId) {
+        const queue = this.queues.get(guildId);
+
+        if (!queue) {
+            return false;
+        }
+
+        return queue.isLooping();
+    }
 }
 
-module.exports = {
-    GuildQueueHandler
-}
+module.exports = GuildQueueHandler;

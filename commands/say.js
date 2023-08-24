@@ -6,6 +6,8 @@ module.exports = {
     name: "say",
     voice: true,
     description: "Play text as voiced audio",
+    cooldown: 5,
+    active: true,
     async execute(message, args) {
         let gender = message.client.tts.gender;
         let language = message.client.tts.language;
@@ -14,8 +16,8 @@ module.exports = {
 
         let b = [];
         for (let i in args) {
-            let v = args[i];
-            let check = paramRegex.exec(v);
+            let param = args[i];
+            let check = paramRegex.exec(param);
 
             if (check != null) {
                 let variable = check.groups.variable;
@@ -64,6 +66,6 @@ module.exports = {
         const writeFile = util.promisify(fs.writeFile);
         await writeFile(outputFile, response.audioContent, 'binary');
         console.log(`Audio content written to file: ${outputFile}`);
-        message.client.getVoiceHandler(message.guild.id).playSoundFile(outputFile);
+        message.client.getVoiceHandler(message.guild.id).playAudioFile(outputFile);
     }
 };

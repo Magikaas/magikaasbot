@@ -1,5 +1,5 @@
-const https = require("https");
-const fs = require("fs");
+const https = require(("https"));
+const fs = require(("fs"));
 
 module.exports = {
     name: "addsound",

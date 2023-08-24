@@ -1,11 +1,11 @@
+const beeData = require('../data/bees.json');
+
 module.exports = {
     name: "beetree",
     description: "Show entire breeding tree for bees.",
     help: "bee <beename>",
     excluded: true,
     execute(message, args) {
-        const beeData = require('../data/bees.json');
-
         const requestedBee = args[0];
 
         let step = 0;

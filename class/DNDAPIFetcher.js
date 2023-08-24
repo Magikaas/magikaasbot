@@ -1,5 +1,5 @@
-const https = require("https");
-const HttpClient = require("../class/HttpClient");
+const https = require(("https"));
+const HttpClient = require(("../class/HttpClient"));
 
 module.exports = class DNDAPIFetcher {
 

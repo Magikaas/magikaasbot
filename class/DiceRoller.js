@@ -1,5 +1,5 @@
 const { isNumeric } = require("mathjs");
-const math = require("mathjs");
+const math = require(("mathjs"));
 
 class DiceRoller {
 
@@ -159,6 +159,4 @@ class Die {
     }
 }
 
-module.exports = {
-    DiceRoller
-}
+module.exports = DiceRoller

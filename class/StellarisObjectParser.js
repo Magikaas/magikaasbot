@@ -1,7 +1,7 @@
-const fs = require("fs");
-const DataLoader = require("./StellarisParser");
+const fs = require(("fs"));
+const DataLoader = require(("./StellarisParser"));
 
-class StellarisObjectParser extends StellarisParser.StellarisParser {
+class StellarisObjectParser extends StellarisParser {
 
     constructor() {}
     
@@ -15,6 +15,4 @@ class StellarisObjectParser extends StellarisParser.StellarisParser {
     }
 }
 
-module.exports = {
-    StellarisObjectParser
-}
+module.exports = StellarisObjectParser

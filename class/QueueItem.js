@@ -5,6 +5,7 @@ class QueueItem {
         this._prev = prev;
         this._item = item;
         this._next = next;
+        this._islooping = false;
     }
 
     value() {
@@ -41,8 +42,14 @@ class QueueItem {
         this.prev.setNext(this.next);
         this.next.setPrev(this.prev);
     }
+
+    setLooping(value) {
+        this._islooping = value;
+    }
+
+    isLooping() {
+        return this._item.isLooping();
+    }
 }
 
-module.exports = {
-    QueueItem
-}
+module.exports = QueueItem;

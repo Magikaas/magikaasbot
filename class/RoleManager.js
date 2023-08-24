@@ -2,15 +2,25 @@ class RoleManager {
     constructor() {}
 
     senderIsAdmin(message) {
-        return this.senderHasRoleWithName(message, "admin");
+        return this.senderHasRoleWithName(message.member, "admin");
+    }
+
+    senderHasRoleWithName(member, roleName) {
+        let role = this.getRoleByName(member.guild, roleName);
+        if (role) {
+            return this.senderHasRole(member, role);
+        }
+        else {
+            return false;
+        }
     }
     
-    senderHasRoleWithName(message, roleName) {
-        return message.member.roles.cache.find(role => role.name === roleName);
+    senderHasRole(member, role) {
+        return member.roles.cache.some(r => r.name === role.name);
     }
     
-    getRoleByName(message, roleName) {
-        return message.guild.roles.cache.find(role => role.name === roleName);
+    getRoleByName(guild, roleName) {
+        return guild.roles.cache.find(role => role.name === roleName);
     }
 
     addRole(user, role) {
@@ -30,6 +40,4 @@ class RoleManager {
     }
 }
 
-module.exports = {
-    RoleManager
-}
+module.exports = RoleManager;

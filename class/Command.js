@@ -1,27 +1,26 @@
 class Command {
     
-    constructor(command, args, message, client) {
+    constructor(command, interaction, client) {
         this.command = command;
-        this.args = args;
-        this.message = message;
+        this.interaction = interaction;
         this.client = client;
     }
 
     run() {
         if (!this.command) {
-            this.message.reply("That command could not be found. Type `" + this.client.prefix + " commands` to see this bot's commands.");
+            this.interaction.reply("That command could not be found. Type `" + this.client.prefix + " commands` to see this bot's commands.");
             return;
         }
     
         // Admin only means admin only
-        if (this.isAdminCommand() && !this.client.RoleManager.senderIsAdmin(message)) return;
+        if (this.isAdminCommand() && !this.client.roleManager.senderIsAdmin(this.interaction)) return;
     
         let hasRole = false;
     
         if (this.command.requiredRoles) {
-            for (const role of command.requiredRoles) {
+            for (const role of this.command.requiredRoles) { //issue here, not sure what
                 // If we have any of the required roles (requiredRoles is an OR list) run the command.
-                if (this.client.RoleManager.senderHasRoleWithName(message, role)) {
+                if (this.client.roleManager.senderHasRoleWithName(this.interaction.member, role)) {
                     hasRole = true;
                     break;
                 }
@@ -32,21 +31,20 @@ class Command {
         }
     
         if (!hasRole) {
-            message.reply("You lack the required permissions to execute this command");
+            this.interaction.reply("You lack the required permissions to execute this command");
             return;
         }
+        const guildId = this.interaction.guild.id;
     
         // Playing means this command should only be run if the bot is currently playing a song in voice.
         if (this.onlyDuringVoiceActivity()) {
-            const guildId = this.message.guild.id;
-            
             if (!this.client.getVoiceHandler(guildId).isInVoice()) {
-                this.message.reply("The bot is not currently connected to any voice channels.");
+                this.interaction.reply("The bot is not currently connected to any voice channels.");
                 return false;
             }
     
             if (!this.client.ytQueueHandler.isPlaying()) {
-                this.message.reply("The bot is not currently playing in voice chat.");
+                this.interaction.reply("The bot is not currently playing in voice chat.");
                 return false;
             }
     
@@ -58,7 +56,7 @@ class Command {
     }
 
     runCommand() {
-        const guildId = this.message.guild.id;
+        const guildId = this.interaction.guild.id;
 
         let voiceHandler = this.client.getVoiceHandler(guildId);
     
@@ -66,24 +64,29 @@ class Command {
             this.client.addVoiceHandler(guildId, this.client);
         }
     
-        if (this.isVoiceCommand() && !this.client.getVoiceHandler(guildId).isConnected()) {
-            const voiceChannel = this.message.member.voice.channel;
+        if (this.command.voice && !this.client.getVoiceHandler(guildId).isConnected()) {
+            const voiceChannel = this.interaction.member.voice.channel;
     
-            if (!voiceChannel) {
-                return this.message.channel.send("You need to be in a voice channel to play music!");
+            if (!voiceChannel) {   
+                return this.interaction.channel.send("You need to be in a voice channel to play music!");
             }
-    
-            const permissions = voiceChannel.permissionsFor(this.message.client.user);
         
-            if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-              return this.message.channel.send("I need the permissions to join and speak in your voice channel!");
+            // Check if the bot has permissions for this voice channel
+            if (!voiceChannel.joinable || !voiceChannel.speakable) {
+              return this.interaction.reply("I need the permissions to join and speak in your voice channel!");
             }
-    
-            this.client.getVoiceHandler(guildId).setChannel(this.message.member.voice.channel);
-            this.client.getVoiceHandler(guildId).connect().then(connection => {
-                this.client.getVoiceHandler(guildId).setConnection(connection);
+
+            // Check if the bot is already in the channel and if not, join it
+            if (!this.client.getVoiceHandler(guildId).isInVoice()) {
+                this.client.getVoiceHandler(guildId).setChannel(voiceChannel);
+                this.client.getVoiceHandler(guildId).connect().then(connection => {
+                    this.client.getVoiceHandler(guildId).setConnection(connection);
+                    this.execute();
+                });
+            }
+            else {
                 this.execute();
-            });
+            }
         }
         else {
             this.execute();
@@ -92,17 +95,22 @@ class Command {
 
     execute() {
         try {
-            this.command.execute(this.message, this.args);
+            this.command.execute(this.interaction);
         }
         catch (error) {
             console.log(error);
-            this.message.reply("There was an error trying to execute command: '" + this.getCommandName() + "'.");
+            this.interaction.reply("There was an error trying to execute command: '" + this.command.name + "'.");
             // message.reply("Error: " + error.message);
         }
     }
 
-    getCommandName() {
-        return this.command.name;
+    async autocomplete() {
+        try {
+            await this.command.autocomplete(this.interaction);
+        }
+        catch (error) {
+            console.error(error);
+        }
     }
 
     isVoiceCommand() { 
@@ -110,7 +118,7 @@ class Command {
     }
 
     isAdminCommand() {
-        return !!this.command.admin;
+        return !!this.command.adminOnly;
     }
 
     requiresRoles() {
@@ -126,6 +134,4 @@ class Command {
     }
 }
 
-module.exports = {
-    Command
-}
+module.exports = Command;

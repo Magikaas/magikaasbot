@@ -8,7 +8,7 @@ module.exports = {
         let queue = message.client.ytQueueHandler.getQueue(message.guild.id);
         
         if (!queue) {
-            queue = new MusicQueue.MusicQueue();
+            queue = new MusicQueue();
             message.client.ytQueueHandler.setQueue(message.guild.id, queue);
         }
 

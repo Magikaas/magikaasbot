@@ -1,6 +1,6 @@
 const DNDAPIFetcher = require("../class/DNDAPIFetcher");
 const Discord = require("discord.js");
-const { json } = require("mathjs");
+const json = require("mathjs");
 
 module.exports = {
     name: "spell",

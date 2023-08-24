@@ -1,4 +1,4 @@
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const XMLHttpRequest = require(("xmlhttprequest")).XMLHttpRequest;
 
 module.exports = class HttpClient {
     constructor(baseUrl, path) {

@@ -1,7 +1,7 @@
-const JsonObject = require("../JsonObject");
-const fs = require('fs');
+const JsonObject = require(("../JsonObject"));
+const fs = require(('fs'));
 
-class Character extends JsonObject.JsonObject {
+class Character extends JsonObject {
 
     constructor() {
         super();
@@ -152,6 +152,4 @@ class Character extends JsonObject.JsonObject {
 
 }
 
-module.exports = {
-    Character
-}
+module.exports = Character

@@ -1,11 +1,11 @@
+const beeData = require('../data/bees.json');
+
 module.exports = {
     name: "bee",
     description: "Show entire .",
     help: "bee <beename>",
     excluded: true,
     execute(message, args) {
-        const beeData = require('../data/bees.json');
-
         const requestedBee = args[0];
 
         let messageString = "\nRecipes:\n";

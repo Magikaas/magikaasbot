@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require(("fs"));
 const { LOG10E } = require("mathjs");
 
 const LINE_TYPE_CONSTANT =      "constant";
@@ -98,6 +98,4 @@ class StellarisParser {
     }
 }
 
-module.exports = {
-    StellarisParser
-}
+module.exports = StellarisParser

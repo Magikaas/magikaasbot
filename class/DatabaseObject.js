@@ -1,4 +1,4 @@
-const DataObject = require("./DataObject");
+const DataObject = require(("./DataObject"));
 
 class DatabaseObject extends DataObject.DataObject {
 
@@ -52,6 +52,4 @@ class DatabaseObject extends DataObject.DataObject {
     }
 }
 
-module.exports = {
-    DatabaseObject
-}
+module.exports = DatabaseObject

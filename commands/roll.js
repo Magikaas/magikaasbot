@@ -4,7 +4,7 @@ module.exports = {
     name: "roll",
     description: "Roll dice",
     execute(message, args) {
-        const diceRoller = new DiceRoller.DiceRoller();
+        const diceRoller = new DiceRoller();
 
         const result = diceRoller.roll(args);
 
